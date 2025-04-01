@@ -629,20 +629,20 @@ org_role = Admin
 ;permission_cache = true
 #################################### SMTP / Emailing ##########################
 [smtp]
-;enabled = false
-;host = localhost:25
-;user =
+enabled = true
+host = smtp.azurecomm.net:587
+user = """${user}"""
 # If the password contains # or ; you have to wrap it with triple quotes. Ex """#password;"""
-;password =
+password = """${password}"""
 ;cert_file =
 ;key_file =
-;skip_verify = false
-;from_address = admin@grafana.localhost
-;from_name = Grafana
+skip_verify = false
+from_address = DoNotReply@${from_address}
+from_name = Grafana
 # EHLO identity in SMTP dialog (defaults to instance_name)
 ;ehlo_identity = dashboard.example.com
 # SMTP startTLS policy (defaults to 'OpportunisticStartTLS')
-;startTLS_policy = NoStartTLS
+startTLS_policy = MandatoryStartTLS
 
 [emails]
 ;welcome_email_on_sign_up = false
