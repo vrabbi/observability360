@@ -1,0 +1,110 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 10,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "uid": "Azure Data Explorer"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "dedupStrategy": "exact",
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.0",
+            "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'ERROR'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Errors Details",
+        "type": "logs"
+      }
+    ],
+    "preload": false,
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "",
+            "value": ""
+          },
+          "name": "query0",
+          "options": [],
+          "query": "",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1M/M",
+      "to": "now-1M/M"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Errors Details",
+    "uid": "fehpgui8o0hdse",
+    "version": 2,
+    "weekStart": ""
+  }
