@@ -49,10 +49,19 @@
                 "type": "linear"
               },
               "thresholdsStyle": {
-                "mode": "off"
+                "mode": "line"
               }
             },
-            "mappings": [],
+            "mappings": [
+              {
+                "options": {
+                  "3": {
+                    "index": 0
+                  }
+                },
+                "type": "value"
+              }
+            ],
             "thresholds": {
               "mode": "absolute",
               "steps": [
@@ -62,7 +71,7 @@
                 },
                 {
                   "color": "red",
-                  "value": 80
+                  "value": 3
                 }
               ]
             }
@@ -281,6 +290,6 @@
     "timezone": "browser",
     "title": "Latency",
     "uid": "eehs7yoddt534a",
-    "version": 7,
+    "version": 8,
     "weekStart": ""
   }
