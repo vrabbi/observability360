@@ -57,7 +57,7 @@ resource "kubernetes_config_map" "collector_config" {
   }
 
   data = {
-    "config.yaml" = file(local_file.otel_collector_config.filename)
+    "config.yaml" = local_file.otel_collector_config.content
   }
 
   depends_on = [local_file.otel_collector_config]
