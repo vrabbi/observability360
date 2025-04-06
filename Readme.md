@@ -27,9 +27,11 @@ Create a file named ``terraform.tfvars`` with the following content:
 
 ```
 subscription_id = "<your_subscription_id>"
-base_name = "<base_name_prefix_for_the_created_resources>"
+base_name = "<base_name_prefix_for_the_created_resources>" 
+email = "<your_email_address>"
 ```
 
+for base_name use only alphanumeric letters, make sure its no longer than 12 characters.
 run az login in order to authenticate and authorize to azure:
 
 ```
@@ -146,38 +148,20 @@ cd ../app
 terraform init
 terraform apply -auto-approve -var-file="../terraform.tfvars"
 ```
-Note: If you get an error: 
 
-`app folder :Error: Invalid function argument
-│   on opentelemetry-collector.tf line 60, in resource "kubernetes_config_map" "collector_config":
-│"config.yaml" = file(local_file.otel_collector_config.filename)
-`
+In case that you receive the following error: ```Error: Provider produced inconsistent final plan```, rerun the command: ```terraform apply -auto-approve -var-file="../terraform.tfvars"```
 
-Run first this command:
-```sh
-terraform apply -auto-approve -var-file="../terraform.tfvars" -target=local_file.otel_collector_config
+At the end of the Terraform apply command you will receive the following outputs:
+
 ```
-
-and after that run the command again:
-```sh
-terraform apply -auto-approve -var-file="../terraform.tfvars"
+grafana_loadbalancer_ip = "<grafana_public_ip>"
+jaeger_loadbalancer_ip = "<jaeger_public_ip>"
+online_store_ui_loadbalancer_ip = "<online_store_ui_public_ip>"
 ```
 
 ### 3. Validate functionallity
 
-Navigate to the backend container app in the created resource group and copy it FQDN,
-
-Preform a Get request to the following url: ``<BACKEND_FQDN>/process``
-
-this operation will create a trace that will be navigated to the otel-collector which will insert it to the OTELTraces table.
-
-Preform the following query in the ``openteldb`` database:
-
-```
-OTELTraces | take 100
-```
-
-and see the traces data (it might take few minutes)
+Navigate to the online store ui and start to play with the application, After that navigate to the grafana and the jaeger to see the telemetry visualization (it might take few minutes for the data to arrive).
 
 ### 4. Online Store
 
@@ -189,38 +173,25 @@ The online store is composed of several services:
 1. **User Service**  
     Manages online store user accounts.
     Located in the `online_store\user` directory.
-    Operates on port 5000.
 2. **Product Service**  
     Located in the `online_store/product` directory.  
     Manages product information and catalog data, ensuring the seamless handling of your inventory details.  
-    Operates on port 5001.
 3. **Cart Service**  
     Manages user shopping carts.
     Located in the `online_store\cart` directory.
-    Operates on port 5002.
 4. **Order Service**  
     Order processing.
     Located in the `online_store\order` directory.
-    Operates on port 5003.
 5. **Online Store UI**
     The online store UI.
     Located in the `online_store\ui` directory.
-    Operates on port 8501.
-
-The online store UI is built using [Streamlit](https://streamlit.io/). To launch it, run the following command from the project root:
-    `streamlit run ./online_store/ui/online_store_ui.py`
-
-The all services must be started from project root directory as:
-    `python -m online_store.<service name>.app`
-For example **user** service :
-    `python -m online_store.user.app`
 
 ### 5. Cleaning Up
 
 To destroy the infrastructure and application, run each time in each directory, first the app directory:
 
 ```sh
-terraform destroy -auto-approve
+terraform destroy -auto-approve -var-file="../terraform.tfvars"
 ```
 
 ### 6. Contact
