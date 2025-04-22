@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import StrMethodFormatter
 import numpy as np
 from tabulate import tabulate
 
@@ -56,7 +57,16 @@ pricing_info = {
             70000: 7777,
             80000: 10103,
             90000: 10233,
-            100000: 10363
+            100000: 10363,
+            200000: 20455,
+            300000: 30528,
+            400000: 41412,
+            500000: 51494,
+            600000: 61576,
+            700000: 71659,
+            800000: 81741,
+            900000: 91824,
+            1000000: 101906,
         }
     }
 }
@@ -85,7 +95,8 @@ for scale in scales:
 ranges = [
     (100, 1000, 'pricing_comparison_100_to_1000.png'),
     (1000, 10000, 'pricing_comparison_1000_to_10000.png'),
-    (10000, 100000, 'pricing_comparison_10000_to_100000.png')
+    (10000, 100000, 'pricing_comparison_10000_to_100000.png'),
+    (100000, 1000000, 'pricing_comparison_100000_to_1000000.png')
 ]
 
 # Plot each range separately
@@ -102,7 +113,10 @@ for start, end, filename in ranges:
     plt.title(f'Pricing Comparison Across Platforms ({start} to {end} GB)')
     plt.xticks(filtered_scales, rotation=45)
     plt.legend()
-    plt.tight_layout()
+    plt.tight_layout(pad=4.0)
+    plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))  # Format x-axis with commas
+    plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))  # Format y-axis with commas
+
     plt.savefig(filename)
 
     print(f"Graph for range {start} to {end} GB has been generated and saved as {filename}.")
