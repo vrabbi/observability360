@@ -9,6 +9,18 @@ receivers:
           allowed_origins:
             - http://*
             - https://*
+  kubeletstats:
+    collection_interval: 20s
+    auth_type: "serviceAccount"
+    endpoint: "https://$${env:K8S_NODE_NAME}:10250"
+    insecure_skip_verify: true
+    metric_groups:
+    - container
+    - pod
+    - volume
+    - node 
+    extra_metadata_labels:
+      - container.id  
 exporters:
   debug:
     verbosity: detailed
@@ -29,7 +41,7 @@ service:
       processors: []
       exporters: [azuredataexplorer, debug]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, kubeletstats]
       processors: []
       exporters: [azuredataexplorer, debug]
     logs:
