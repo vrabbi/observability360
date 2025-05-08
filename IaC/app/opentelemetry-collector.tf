@@ -50,6 +50,45 @@ resource "kubernetes_namespace" "opentelemtry" {
     name = "opentelemtry"
   }
 }
+
+resource "kubernetes_service_account" "opentelemtry" {
+  metadata {
+    name      = "opentelemtry"
+    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
+  }
+}
+
+resource "kubernetes_cluster_role" "opentelemtry" {
+  metadata {
+    name = "opentelemtry-read"
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["*"]
+    verbs      = ["get", "list", "watch"]
+  }
+}
+
+
+resource "kubernetes_cluster_role_binding" "opentelemtry" {
+  metadata {
+    name = "opentelemtry-read"
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "opentelemtry-read"
+  }
+
+  subject {
+    kind      = "ServiceAccount"
+    name      = "opentelemtry"
+    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
+  }
+}
+
 resource "kubernetes_config_map" "collector_config" {
   metadata {
     name      = "collector-config"
@@ -63,15 +102,13 @@ resource "kubernetes_config_map" "collector_config" {
   depends_on = [local_file.otel_collector_config]
 }
 
-resource "kubernetes_deployment" "otel_collector" {
+resource "kubernetes_daemonset" "otel_collector" {
   metadata {
     name      = "otel-collector"
     namespace = kubernetes_namespace.opentelemtry.metadata[0].name
   }
 
   spec {
-    replicas = 3
-
     selector {
       match_labels = {
         app = "otel-collector"
@@ -86,18 +123,20 @@ resource "kubernetes_deployment" "otel_collector" {
       }
 
       spec {
+        service_account_name = kubernetes_service_account.opentelemtry.metadata[0].name
         container {
           name  = "otel-collector"
           image = "otel/opentelemetry-collector-contrib:0.120.0"
           resources {
-            limits = {
-              cpu    = "1"
-              memory = "2Gi"
-            }
             requests = {
+              cpu    = "250m"
+              memory = "500m"
+            }
+            limits = {
               cpu    = "500m"
               memory = "1Gi"
             }
+            
           }
 
           port {
@@ -114,7 +153,15 @@ resource "kubernetes_deployment" "otel_collector" {
             name       = "collector-config"
             mount_path = "/etc/otelcol-contrib"
           }
-
+          
+          env {
+            name = "K8S_NODE_NAME"
+            value_from {
+              field_ref {
+                field_path = "spec.nodeName"
+              }
+            }
+          }
         }
         volume {
           name = "collector-config"
