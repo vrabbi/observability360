@@ -29,8 +29,8 @@ logging.basicConfig(
 log = logging.getLogger("board")
 
 # endpoints for SSE agents
-WHITE_URL = os.getenv("WHITE_URL", "http://localhost:8001")
-BLACK_URL = os.getenv("BLACK_URL", "http://localhost:8002")
+WHITE_URL = os.getenv("WHITE_URL", "http://9.223.138.20")
+BLACK_URL = os.getenv("BLACK_URL", "http://9.223.63.147")
 
 # Board customization options (if supported by display)
 BOARD_SIZE = os.getenv("BOARD_SIZE", None)  # optional
@@ -124,12 +124,6 @@ async def run() -> None:
               "Threefold repetition" if board.can_claim_threefold_repetition() else
               "Unknown")
     log.info(f"Game over: {result} - {reason}")
-
-    # export PGN
-    game = chess.pgn.Game.from_board(board)
-    with open("game_record.pgn", "w") as f:
-        f.write(str(game))
-    log.info("Game saved to game_record.pgn")
 
     display.terminate(game_board)
     await asyncio.sleep(2)

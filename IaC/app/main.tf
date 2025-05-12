@@ -56,3 +56,8 @@ data "azurerm_eventhub_consumer_group" "activitylog_adx" {
   eventhub_name       = data.azurerm_eventhub.activitylog.name
   resource_group_name = data.azurerm_resource_group.demo.name
 }
+
+data "azurerm_cognitive_account" "demo" {
+  name                = "${var.base_name}-openai"
+  resource_group_name = data.azurerm_resource_group.demo.name
+}

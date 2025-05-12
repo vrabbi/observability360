@@ -4,12 +4,12 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock .env ./
+COPY pyproject.toml uv.lock ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
-COPY mcp_sse/black/black_agent.py ./black_agent.py
+COPY black/black_agent.py ./black_agent.py
 
 EXPOSE 8000
 

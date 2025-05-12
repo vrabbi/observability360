@@ -12,12 +12,12 @@ resource "azurerm_cognitive_deployment" "demo" {
 
   model {
     format  = "OpenAI"
-    name    = "gpt-4o"
-    version = "2024-11-20"
+    name    = var.openai_model
+    version = var.openai_model_version
   }
 
   sku {
-    name = "GlobalStandard"
+    name     = "GlobalStandard"
     capacity = 450
   }
 }

@@ -5,12 +5,12 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock .env ./
+COPY pyproject.toml uv.lock ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
-COPY mcp_sse/white/white_agent.py ./white_agent.py
+COPY white/white_agent.py ./white_agent.py
 
 EXPOSE 8000
 
