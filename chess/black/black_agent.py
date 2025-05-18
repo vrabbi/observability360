@@ -111,7 +111,7 @@ async def move_tool(fen: str):
 
             if uci in legal_uci:
                 log.info("[BlackAgent] Accepted move: %s", uci)
-                span.set_attribute("uci", f"Accepted move: {uci}")
+                span.set_attribute(f"Accepted move: {uci}")
                 return {"uci": uci}
 
             # feedback for retry

@@ -11,7 +11,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
 COPY white/white_agent.py ./white_agent.py
-COPY otel otel
 
 EXPOSE 8000
 

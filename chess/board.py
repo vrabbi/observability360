@@ -20,9 +20,7 @@ import chess.pgn
 from chessboard import display
 from autogen_ext.tools.mcp import McpWorkbench, SseServerParams
 from otel.otel import configure_telemetry, trace_span
-from dotenv import load_dotenv
 
-load_dotenv()
 """
 # configure logging
 logging.basicConfig(
@@ -77,7 +75,7 @@ async def run() -> None:
                 result = await current_wb.call_tool("move", {"fen": fen})
                 # parse SSE chunked response
                 content = result.result[0].content
-                log.info(f"Current move is : {content}")
+                log.info("Current move is :", content)
                 if not content or 'uci' not in content:
                     invalid_count += 1
                     log.warning(f"{current_name} agent error ({invalid_count}/{max_invalid}): {content}")

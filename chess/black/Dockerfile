@@ -10,7 +10,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
 COPY black/black_agent.py ./black_agent.py
-COPY otel otel
 
 EXPOSE 8000
 
