@@ -12,4 +12,9 @@ dependencies = [
     "fastapi-mcp>=0.3.3",
     "httpx>=0.28.1",
     "mcp[cli]>=1.7.1",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.33.1",
+    "opentelemetry-exporter-otlp-proto-http>=1.33.1",
+    "opentelemetry-instrumentation-fastapi>=0.54b1",
+    "opentelemetry-instrumentation-logging>=0.54b1",
+    "opentelemetry-sdk>=1.33.1",
 ]
