@@ -136,7 +136,7 @@ resource "kubernetes_daemonset" "otel_collector" {
               cpu    = "500m"
               memory = "1Gi"
             }
-
+            
           }
 
           port {
@@ -153,7 +153,7 @@ resource "kubernetes_daemonset" "otel_collector" {
             name       = "collector-config"
             mount_path = "/etc/otelcol-contrib"
           }
-
+          
           env {
             name = "K8S_NODE_NAME"
             value_from {
@@ -204,34 +204,5 @@ resource "kubernetes_service" "otel_collector" {
     }
 
     type = "ClusterIP"
-  }
-}
-
-resource "kubernetes_service" "otel_collector_lb" {
-  metadata {
-    name      = "otel-collector-lb"
-    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
-  }
-
-  spec {
-    selector = {
-      app = "otel-collector"
-    }
-
-    port {
-      name        = "grpc"
-      port        = 4317
-      target_port = 4317
-      protocol    = "TCP"
-    }
-
-    port {
-      name        = "http"
-      port        = 4318
-      target_port = 4318
-      protocol    = "TCP"
-    }
-
-    type = "LoadBalancer"
   }
 }

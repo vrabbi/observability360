@@ -8,7 +8,7 @@ resource "time_rotating" "example" {
 }
 
 resource "azuread_application" "grafana_to_adx" {
-  display_name = "grafana"
+  display_name = "grafana_to_adx"
   owners       = [data.azuread_client_config.current.object_id]
 
   password {
@@ -24,11 +24,6 @@ resource "azuread_service_principal" "grafana_to_adx" {
   owners                       = [data.azuread_client_config.current.object_id]
 }
 
-resource "azuread_service_principal_password" "grafana_to_adx" {
-  service_principal_id = azuread_service_principal.grafana_to_adx.id
-  depends_on           = [azurerm_role_assignment.grafana_to_communication_service]
-}
-
 resource "azurerm_kusto_database_principal_assignment" "grafana_to_adx" {
   name                = "GrafanaQueryToADX"
   resource_group_name = data.azurerm_resource_group.demo.name
@@ -39,18 +34,19 @@ resource "azurerm_kusto_database_principal_assignment" "grafana_to_adx" {
   principal_id   = azuread_application.grafana_to_adx.client_id
   principal_type = "App"
   role           = "Viewer"
-
-  depends_on = [azuread_service_principal_password.grafana_to_adx]
 }
 
 resource "azurerm_role_assignment" "grafana_to_communication_service" {
   scope                = azurerm_communication_service.demo.id
   role_definition_name = azurerm_role_definition.communication_service_role.name
   principal_id         = azuread_service_principal.grafana_to_adx.object_id
-  principal_type       = "ServicePrincipal"
+  principal_type = "ServicePrincipal"
 }
 
-
+resource "azuread_service_principal_password" "grafana_to_adx" {
+  service_principal_id = azuread_service_principal.grafana_to_adx.id
+  depends_on = [ azurerm_kusto_database_principal_assignment.grafana_to_adx ,azurerm_role_assignment.grafana_to_communication_service ]
+}
 
 resource "local_file" "adx_datasource" {
   filename = "${path.cwd}/${local.grafana_directory_path}/provisioning/datasources/adx-datasource.yml"
@@ -66,8 +62,8 @@ resource "local_file" "adx_datasource" {
 resource "local_file" "grafana_ini" {
   filename = "${path.cwd}/${local.grafana_directory_path}/grafana.ini"
   content = templatefile("${path.cwd}/${local.grafana_directory_path}/grafana.ini.tftpl", {
-    user         = "${azurerm_communication_service.demo.name}|${azuread_application.grafana_to_adx.client_id}|${data.azuread_client_config.current.tenant_id}"
-    password     = tolist(azuread_application.grafana_to_adx.password).0.value
+    user = "${azurerm_communication_service.demo.name}|${azuread_application.grafana_to_adx.client_id}|${data.azuread_client_config.current.tenant_id}"
+    password = tolist(azuread_application.grafana_to_adx.password).0.value
     from_address = azurerm_email_communication_service_domain.demo.mail_from_sender_domain
   })
 }
