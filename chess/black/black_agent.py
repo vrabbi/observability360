@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-SERVICE_VERSION = "1.0.0"
+SERVICE_VERSION = "1.0.1"
 
 instruments = configure_telemetry("Black", SERVICE_VERSION)
 meter = instruments["meter"]

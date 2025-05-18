@@ -31,7 +31,7 @@ logging.basicConfig(
 log = logging.getLogger("board")
 """
 
-SERVICE_VERSION = "1.0.0"
+SERVICE_VERSION = "1.0.1"
 
 instruments = configure_telemetry("Board Service", SERVICE_VERSION)
 meter = instruments["meter"]

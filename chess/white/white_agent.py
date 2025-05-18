@@ -18,7 +18,7 @@ load_dotenv()
 #logging.basicConfig(level=logging.INFO, format="[WhiteAgent] %(message)s")
 #log = logging.getLogger(__name__)
 
-SERVICE_VERSION = "1.0.0"
+SERVICE_VERSION = "1.0.1"
 
 instruments = configure_telemetry("White", SERVICE_VERSION)
 meter = instruments["meter"]
