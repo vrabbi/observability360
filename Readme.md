@@ -1,6 +1,6 @@
-# OpenTelemetry Demo
+# AI Observability Demo
 
-This repository contains a demo for deploying OpenTelemetry with Azure Data Explorer for observability. The demo includes setting up infrastructure and application components using Terraform.
+This repository contains a demo for deploying AI Agents Application app with Azure Data Explorer for observability. The demo includes setting up infrastructure and application components using Terraform.
 
 ## Prerequisites
 
@@ -15,8 +15,8 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```sh
-git clone https://github.com/vladfeigin/observability360.git
-cd observability360
+git clone https://github.com/omerfeldman22/aiobservability360.git
+cd aiobservability360
 ```
 
 ### 2. Deploy the demo services

@@ -45,3 +45,13 @@ variable "adx_sku" {
   description = "Value of the sku for the Azure Data Explorer cluster."
   default     = "Standard_E2d_v4"
 }
+
+variable "openai_model" {
+  description = "The OpenAI model to use."
+  default     = "gpt-4o"
+}
+
+variable "openai_model_version" {
+  description = "The OpenAI model version to use."
+  default     = "2024-11-20"
+}
