@@ -8,9 +8,9 @@ SSE-based orchestrator for a two-engine chess game:
     and logs all events.
 
 Requires:
-    pip3 install autogen-agentchat autogen-ext[openai,mcp] python-chess chess-board rich
+ uv add autogen-agentchat autogen-ext[openai,mcp] python-chess chess-board rich
+Run from the root of the repository: python -m mcp_sse.board
 """
-
 import asyncio
 import json
 import os
@@ -19,7 +19,9 @@ import chess
 import chess.pgn
 from chessboard import display
 from autogen_ext.tools.mcp import McpWorkbench, SseServerParams
+from otel.otel import configure_telemetry, trace_span
 
+"""
 # configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -27,20 +29,24 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 log = logging.getLogger("board")
+"""
+
+SERVICE_VERSION = "1.0.0"
+
+instruments = configure_telemetry("Board Service", SERVICE_VERSION)
+meter = instruments["meter"]
+tracer = instruments["tracer"]
+log = instruments["logger"]
 
 # endpoints for SSE agents
-WHITE_URL = os.getenv("WHITE_URL", "http://9.223.138.20")
-BLACK_URL = os.getenv("BLACK_URL", "http://9.223.63.147")
+WHITE_URL = os.getenv("WHITE_URL", "http://localhost:8001")
+BLACK_URL = os.getenv("BLACK_URL", "http://localhost:8002")
 
-# Board customization options (if supported by display)
-BOARD_SIZE = os.getenv("BOARD_SIZE", None)  # optional
-DARK_SQUARE_COLOR = os.getenv("DARK_SQUARE_COLOR", None)
-LIGHT_SQUARE_COLOR = os.getenv("LIGHT_SQUARE_COLOR", None)
-HIGHLIGHT_COLOR = os.getenv("HIGHLIGHT_COLOR", None)
-
-
+@trace_span("Start the game...", tracer)
 async def run() -> None:
+    
     board = chess.Board()
+    
     # initialize UI with the starting FEN
     game_board = display.start(board.fen())
 
@@ -55,46 +61,50 @@ async def run() -> None:
     async with wb_white, wb_black:
         current_wb, current_name = wb_white, "white"
         other_wb, other_name     = wb_black, "black"
-        max_invalid = 10
+        max_invalid = 50
         invalid_count = 0
 
         while not board.is_game_over():
             fen = board.fen()
             log.info(f"Requesting {current_name} move. FEN={fen}")
 
-            # call the remote move tool
-            result = await current_wb.call_tool("move", {"fen": fen})
-            # parse SSE chunked response
-            content = result.result[0].content
-            print("type tool result :", content)
-            if not content or 'uci' not in content:
-                invalid_count += 1
-                log.warning(f"{current_name} agent error ({invalid_count}/{max_invalid}): {content}")
-                if invalid_count  <= max_invalid:
-                    asyncio.sleep(1)
-                    continue
-                else:
-                    log.error("Too many invalid moves; aborting game.")
-                    break
-            invalid_count = 0
+            with tracer.start_as_current_span("move_span") as span:
+                span.set_attribute("fen", fen)
+                span.set_attribute("current_player", current_name)
+                # call the remote move tool
+                result = await current_wb.call_tool("move", {"fen": fen})
+                # parse SSE chunked response
+                content = result.result[0].content
+                log.info("Current move is :", content)
+                if not content or 'uci' not in content:
+                    invalid_count += 1
+                    log.warning(f"{current_name} agent error ({invalid_count}/{max_invalid}): {content}")
+                    if invalid_count <= max_invalid:
+                        await asyncio.sleep(1)
+                        continue
+                    else:
+                        log.error("1.Too many invalid moves; aborting game.")
+                        break
+                invalid_count = 0
                 
-            try:
-                payload = json.loads(content)
-            except json.JSONDecodeError:
-                log.error(f"Fatal Error: Invalid JSON from {current_name}: {content}")
-                break
-
-            if not payload or 'uci' not in payload:
-                invalid_count += 1
-                log.warning(f"{current_name} agent error ({invalid_count}/{max_invalid}): {payload}")
-                if invalid_count > max_invalid:
-                    log.error("Too many invalid moves; aborting game.")
+                try:
+                    payload = json.loads(content)
+                except json.JSONDecodeError:
+                    log.error(f"Fatal Error: Invalid JSON from {current_name}: {content}")
                     break
-                continue
+
+                if not payload or 'uci' not in payload:
+                    invalid_count += 1
+                    log.warning(f"{current_name} agent error ({invalid_count}/{max_invalid}): {payload}")
+                    if invalid_count >= max_invalid:
+                        log.error("2.Too many invalid moves; aborting game.")
+                        break
+                    continue
             
-            invalid_count = 0
-            uci = payload['uci']
-            log.info(f"Received UCI from {current_name}: {uci}")
+                invalid_count = 0
+                uci = payload['uci']
+                log.info(f"Received UCI from {current_name}: {uci}")
+                span.set_attribute("uci", uci)
 
             # validate move
             try:
@@ -113,7 +123,7 @@ async def run() -> None:
             # swap turns
             current_wb, other_wb       = other_wb, current_wb
             current_name, other_name   = other_name, current_name
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
 
     # game over summary
     result = board.result()
@@ -125,9 +135,16 @@ async def run() -> None:
               "Unknown")
     log.info(f"Game over: {result} - {reason}")
 
-    display.terminate(game_board)
+    # export PGN
+    game = chess.pgn.Game.from_board(board)
+    with open("game_record.pgn", "w") as f:
+        f.write(str(game))
+    log.info("Game saved to game_record.pgn")
+
+    display.terminate()
     await asyncio.sleep(2)
 
 if __name__ == "__main__":
+    # URLs may include /sse or root depending on agent setup
     log.info("Starting Board Orchestrator (SSE)!")
     asyncio.run(run())
