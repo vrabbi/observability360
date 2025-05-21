@@ -2,7 +2,7 @@ locals {
   jaeger_directory_path = "../../jaeger"
 
   jaeger_plugin_directory_path   = "${local.jaeger_directory_path}/plugin"
-  jaeger_kusto_plugin_image_name = "${var.base_name}-jaeger-kusto-plugin:latest"
+  jaeger_kusto_plugin_image_name = "${var.base_name}-jaeger-kusto-plugin"
 
   jaeger_kusto_plugin_dns_label      = "${var.base_name}-jaeger-plugin"
   jaeger_kusto_plugin_clusterip_name = "jaeger-plugin"
@@ -62,41 +62,56 @@ resource "azurerm_container_registry_task" "jaeger_plugin" {
     os      = "Linux"
     architecture = "amd64"
   }
-  source_repository {
-    source_control_type = "Github"
-    repository_url       = "https://github.com/vrabbi/"
-    branch               = "main"
-    source_control_auth_properties {
-      token_type = "PAT"
-      token      = var.github_pat
-    }
-  }
   docker_step {
-    dockerfile_path  = "jaeger/plugin/Dockerfile"
-    context_path     = "jaeger/plugin"
+    dockerfile_path = "Dockerfile"
+    context_path       = "https://github.com/vrabbi/observability360#main:jaeger/plugin"
+    branch               = "main"
     image_names      = [local.jaeger_kusto_plugin_image_name]
-    is_push_enabled  = true
-    no_cache         = false
   }
-  trigger {
-    source_triggers {
-      source_type = "Commit"
-      name        = "defaultSourceTrigger"
-    }
-    base_image_trigger {
-      name            = "defaultBaseImageTrigger"
-      type            = "Runtime"
-      update_trigger_endpoint = false
-    }
+  source_triggers {
+    source_type = "Github"
+    events = "commit"
+    repository_url = "https://github.com/vrabbi/observability360"
+    branch = "main"
+    name        = "defaultSourceTrigger"
+  }
+  base_image_trigger {
+    name            = "defaultBaseImageTrigger"
+    type            = "Runtime"
+    update_trigger_endpoint = false
   }
 }
 
+resource "azurerm_container_registry_task_schedule_run_now" "jaeger_plugin" {
+  container_registry_task_id = azurerm_container_registry_task.jaeger_plugin.id
+}
 
 # Jaeger Kubernetes Resources
 resource "kubernetes_namespace" "jaeger" {
   metadata {
     name = "jaeger"
   }
+}
+
+resource "kubernetes_secret" "jaeger_plugin_config" {
+  metadata {
+    name      = "jaeger-plugin-config"
+    namespace = kubernetes_namespace.jaeger.metadata[0].name
+  }
+
+  data = {
+    "jaeger-kusto-config.json" = base64encode(
+      templatefile("${path.cwd}/${local.jaeger_plugin_directory_path}/jaeger-kusto-config.json.tftpl", {
+        adx_cluster_uri = data.azurerm_kusto_cluster.demo.uri,
+        adx_database    = data.azurerm_kusto_database.otel.name,
+        application_id  = azuread_service_principal.jaeger.client_id,
+        application_key = azuread_service_principal_password.jaeger.value,
+        tenant_id       = data.azuread_client_config.current.tenant_id
+      })
+    )
+  }
+
+  type = "Opaque"
 }
 
 resource "kubernetes_deployment" "jaeger_plugin" {
@@ -122,7 +137,20 @@ resource "kubernetes_deployment" "jaeger_plugin" {
       }
 
       spec {
+        volume {
+          name = "plugin-config"
+          secret {
+            secret_name = kubernetes_secret.jaeger_plugin_config.metadata[0].name
+          }
+        }
+
+
         container {
+          volume_mount {
+            name       = "plugin-config"
+            mount_path = "/etc/jaeger-plugin"
+            read_only  = true
+          }
           name  = "jaeger-plugin"
           image = docker_registry_image.jaeger_plugin.name
           resources {
