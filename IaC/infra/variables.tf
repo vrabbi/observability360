@@ -3,6 +3,10 @@ variable "subscription_id" {
   sensitive   = true
 }
 
+variable "email" {
+  description = "The email of the owner of this stack"
+}
+
 variable "base_name" {
   description = "The base name for the resources (will be used for prefix)."
 }

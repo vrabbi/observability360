@@ -55,31 +55,40 @@ resource "local_file" "jaeger_kusto_config" {
 }
 
 # Jaeger Plugin Image
-resource "docker_image" "jaeger_plugin" {
-  name         = "${data.azurerm_container_registry.demo.login_server}/${local.jaeger_kusto_plugin_image_name}"
-  keep_locally = false
-
-  build {
-    context  = "${path.cwd}/${local.jaeger_plugin_directory_path}"
-    platform = "linux/amd64"
+resource "azurerm_container_registry_task" "jaeger_plugin" {
+  name                 = "jaeger-kusto-plugin-task"
+  container_registry_id = data.azurerm_container_registry.demo.id
+  platform {
+    os      = "Linux"
+    architecture = "amd64"
   }
-
-  triggers = {
-    dir_sha1 = sha1(join("", [for f in fileset(path.cwd, "${local.jaeger_plugin_directory_path}/**") : filesha1(f)]))
+  source_repository {
+    source_control_type = "Github"
+    repository_url       = "https://github.com/vrabbi/"
+    branch               = "main"
+    source_control_auth_properties {
+      token_type = "PAT"
+      token      = var.github_pat
+    }
   }
-
-  depends_on = [local_file.jaeger_kusto_config]
-}
-
-resource "docker_registry_image" "jaeger_plugin" {
-  name          = docker_image.jaeger_plugin.name
-  keep_remotely = true
-
-  triggers = {
-    dir_sha1 = sha1(join("", [for f in fileset(path.cwd, "${local.jaeger_plugin_directory_path}/**") : filesha1(f)]))
+  docker_step {
+    dockerfile_path  = "jaeger/plugin/Dockerfile"
+    context_path     = "jaeger/plugin"
+    image_names      = [local.jaeger_kusto_plugin_image_name]
+    is_push_enabled  = true
+    no_cache         = false
   }
-
-  depends_on = [docker_image.jaeger_plugin]
+  trigger {
+    source_triggers {
+      source_type = "Commit"
+      name        = "defaultSourceTrigger"
+    }
+    base_image_trigger {
+      name            = "defaultBaseImageTrigger"
+      type            = "Runtime"
+      update_trigger_endpoint = false
+    }
+  }
 }
 
 
