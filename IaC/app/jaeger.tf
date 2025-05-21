@@ -54,6 +54,13 @@ resource "local_file" "jaeger_kusto_config" {
   })
 }
 
+resource "azurerm_container_registry_agent_pool" "demo" {
+  name                    = "demo"
+  resource_group_name     = data.azurerm_resource_group.demo.name
+  location                = data.azurerm_resource_group.demo.location
+  container_registry_name = data.azurerm_container_registry.demo.name
+}
+
 # Jaeger Plugin Image
 resource "azurerm_container_registry_task" "jaeger_plugin" {
   name                 = "jaeger-kusto-plugin-task"
@@ -65,20 +72,8 @@ resource "azurerm_container_registry_task" "jaeger_plugin" {
   docker_step {
     dockerfile_path = "Dockerfile"
     context_path       = "https://github.com/vrabbi/observability360#main:jaeger/plugin"
-    branch               = "main"
     image_names      = [local.jaeger_kusto_plugin_image_name]
-  }
-  source_triggers {
-    source_type = "Github"
-    events = "commit"
-    repository_url = "https://github.com/vrabbi/observability360"
-    branch = "main"
-    name        = "defaultSourceTrigger"
-  }
-  base_image_trigger {
-    name            = "defaultBaseImageTrigger"
-    type            = "Runtime"
-    update_trigger_endpoint = false
+    context_access_token = var.github_token
   }
 }
 
@@ -114,76 +109,74 @@ resource "kubernetes_secret" "jaeger_plugin_config" {
   type = "Opaque"
 }
 
-resource "kubernetes_deployment" "jaeger_plugin" {
-  metadata {
-    name      = "jaeger-plugin"
-    namespace = kubernetes_namespace.jaeger.metadata[0].name
-  }
+#resource "kubernetes_deployment" "jaeger_plugin" {
+#  metadata {
+#    name      = "jaeger-plugin"
+#    namespace = kubernetes_namespace.jaeger.metadata[0].name
+#  }
 
-  spec {
-    replicas = 1
-
-    selector {
-      match_labels = {
-        app = "jaeger-plugin"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          app = "jaeger-plugin"
-        }
-      }
-
-      spec {
-        volume {
-          name = "plugin-config"
-          secret {
-            secret_name = kubernetes_secret.jaeger_plugin_config.metadata[0].name
-          }
-        }
-
-
-        container {
-          volume_mount {
-            name       = "plugin-config"
-            mount_path = "/etc/jaeger-plugin"
-            read_only  = true
-          }
-          name  = "jaeger-plugin"
-          image = docker_registry_image.jaeger_plugin.name
-          resources {
-            limits = {
-              cpu    = "1"
-              memory = "2Gi"
-            }
-            requests = {
-              cpu    = "0.5"
-              memory = "1Gi"
-            }
-          }
-          port {
-            container_port = 6060
-            protocol       = "TCP"
-          }
-          port {
-            container_port = 8989
-            protocol       = "TCP"
-          }
-          env {
-            name  = "JAEGER_AGENT_HOST"
-            value = "${local.jaeger_clusterip_name}.${kubernetes_namespace.jaeger.metadata[0].name}.svc.cluster.local"
-          }
-          env {
-            name  = "JAEGER_AGENT_PORT"
-            value = "6831"
-          }
-        }
-      }
-    }
-  }
-}
+#  spec {
+#    replicas = 1
+#
+#    selector {
+#      match_labels = {
+#        app = "jaeger-plugin"
+#      }
+#    }
+#
+#    template {
+#      metadata {
+#        labels = {
+#          app = "jaeger-plugin"
+#        }
+#      }
+#
+#      spec {
+#        volume {
+#          name = "plugin-config"
+#          secret {
+#            secret_name = kubernetes_secret.jaeger_plugin_config.metadata[0].name
+#          }
+#        }
+#        container {
+#          volume_mount {
+#            name       = "plugin-config"
+#            mount_path = "/etc/jaeger-plugin"
+#            read_only  = true
+#          }
+#          name  = "jaeger-plugin"
+#          image = local.jaeger_kusto_plugin_image_name
+#          resources {
+#            limits = {
+#              cpu    = "1"
+#              memory = "2Gi"
+#            }
+#            requests = {
+#              cpu    = "0.5"
+#              memory = "1Gi"
+#            }
+#          }
+#          port {
+#            container_port = 6060
+#            protocol       = "TCP"
+#          }
+#          port {
+#            container_port = 8989
+#            protocol       = "TCP"
+#          }
+#          env {
+#            name  = "JAEGER_AGENT_HOST"
+#            value = "${local.jaeger_clusterip_name}.${kubernetes_namespace.jaeger.metadata[0].name}.svc.cluster.local"
+#          }
+#          env {
+#            name  = "JAEGER_AGENT_PORT"
+#            value = "6831"
+#          }
+#        }
+#      }
+#    }
+#  }
+#}
 
 resource "kubernetes_service" "jaeger_plugin" {
   metadata {
@@ -215,83 +208,83 @@ resource "kubernetes_service" "jaeger_plugin" {
 }
 
 
-resource "kubernetes_deployment" "jaeger" {
-  metadata {
-    name      = "jaeger"
-    namespace = kubernetes_namespace.jaeger.metadata[0].name
-  }
-
-  spec {
-    replicas = 1
-
-    selector {
-      match_labels = {
-        app = "jaeger"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          app = "jaeger"
-        }
-      }
-
-      spec {
-        container {
-          name  = "jaeger"
-          image = local.jaeger_image_name
-          resources {
-            limits = {
-              cpu    = "2"
-              memory = "4Gi"
-            }
-            requests = {
-              cpu    = "1"
-              memory = "2Gi"
-            }
-          }
-          port {
-            container_port = 6831
-            protocol       = "UDP"
-          }
-          port {
-            container_port = 6832
-            protocol       = "UDP"
-          }
-          port {
-            container_port = 5778
-            protocol       = "TCP"
-          }
-          port {
-            container_port = 16686
-            protocol       = "TCP"
-          }
-          port {
-            container_port = 14268
-            protocol       = "TCP"
-          }
-          env {
-            name  = "SPAN_STORAGE_TYPE"
-            value = "grpc-plugin"
-          }
-          env {
-            name  = "GRPC_STORAGE_SERVER"
-            value = "${local.jaeger_kusto_plugin_clusterip_name}.${kubernetes_namespace.jaeger.metadata[0].name}.svc.cluster.local:8989"
-          }
-          env {
-            name  = "GRPC_STORAGE_CONNECTION_TIMEOUT"
-            value = "60s"
-          }
-          env {
-            name  = "GRPC_STORAGE_TLS_ENABLED"
-            value = "false"
-          }
-        }
-      }
-    }
-  }
-}
+#resource "kubernetes_deployment" "jaeger" {
+#  metadata {
+#    name      = "jaeger"
+#    namespace = kubernetes_namespace.jaeger.metadata[0].name
+#  }
+#
+#  spec {
+#    replicas = 1
+#
+#    selector {
+#      match_labels = {
+#        app = "jaeger"
+#      }
+#    }
+#
+#    template {
+#      metadata {
+#        labels = {
+#          app = "jaeger"
+#        }
+#      }
+#
+#      spec {
+#        container {
+#          name  = "jaeger"
+#          image = local.jaeger_image_name
+#          resources {
+#            limits = {
+#              cpu    = "2"
+#              memory = "4Gi"
+#            }
+#            requests = {
+#              cpu    = "1"
+#              memory = "2Gi"
+#            }
+#          }
+#          port {
+#            container_port = 6831
+#            protocol       = "UDP"
+#          }
+#          port {
+#            container_port = 6832
+#            protocol       = "UDP"
+#          }
+#          port {
+#            container_port = 5778
+#            protocol       = "TCP"
+#          }
+#          port {
+#            container_port = 16686
+#            protocol       = "TCP"
+#          }
+#          port {
+#            container_port = 14268
+#            protocol       = "TCP"
+#          }
+#          env {
+#            name  = "SPAN_STORAGE_TYPE"
+#            value = "grpc-plugin"
+#          }
+#          env {
+#            name  = "GRPC_STORAGE_SERVER"
+#            value = "${local.jaeger_kusto_plugin_clusterip_name}.${kubernetes_namespace.jaeger.metadata[0].name}.svc.cluster.local:8989"
+#          }
+#          env {
+#            name  = "GRPC_STORAGE_CONNECTION_TIMEOUT"
+#            value = "60s"
+#          }
+#          env {
+#            name  = "GRPC_STORAGE_TLS_ENABLED"
+#            value = "false"
+#          }
+#        }
+#      }
+#    }
+#  }
+#}
 
 resource "kubernetes_service" "jaeger_clusterip" {
   metadata {

@@ -25,3 +25,7 @@ variable "adx_sku" {
   description = "Value of the sku for the Azure Data Explorer cluster."
   default     = "Dev(No SLA)_Standard_D11_v2"
 }
+
+variable "github_token" {
+  description = "Github PAT for ACR Build tasks to pull the source code of this repo"
+}
