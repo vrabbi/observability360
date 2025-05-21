@@ -142,7 +142,6 @@ resource "kubernetes_deployment" "jaeger_plugin" {
             read_only  = true
           }
           name  = "jaeger-plugin"
-          command = ["/go/bin/jaeger-kusto", "--config=/etc/jaeger-plugin/jaeger-kusto-config.json"]
           image = "${data.azurerm_container_registry.demo.name}.azurecr.io/${local.jaeger_kusto_plugin_image_name}"
           resources {
             limits = {
