@@ -1,6 +1,6 @@
 {
     "diagnosticsProfilingEnabled": true,
-    "kustoConfigPath": "/config/jaeger-kusto-config.json",
+    "kustoConfigPath": "/etc/jaeger-plugin/jaeger-kusto-config.json",
     "logLevel": "info",
     "logJson": true,
     "remoteMode": true,
