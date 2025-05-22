@@ -49,3 +49,11 @@ variable "adx_sku" {
   description = "Value of the sku for the Azure Data Explorer cluster."
   default     = "Standard_E2d_v4"
 }
+
+variable "github_token" {
+  description = "Github PAT for ACR Build tasks to pull the source code of this repo"
+}
+
+variable "pixie_deployment_key" {
+  description = "Pixie Deployment Key. can be generated based on the docs here: https://docs.px.dev/reference/admin/deploy-keys/#create-a-deploy-key"
+}

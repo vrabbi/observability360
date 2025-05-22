@@ -29,3 +29,16 @@ variable "adx_sku" {
 variable "github_token" {
   description = "Github PAT for ACR Build tasks to pull the source code of this repo"
 }
+
+variable "pixie_deployment_key" {
+  description = "Pixie Deployment Key. can be generated based on the docs here: https://docs.px.dev/reference/admin/deploy-keys/#create-a-deploy-key"
+}
+variable "github_repo_url" {
+  default = "https://github.com/vrabbi/observability360"
+  description = "The repo with the source code of this project which is used by ACR to build our images"
+}
+
+variable "github_repo_branch" {
+  default = "main"
+  description = "The branch of the github repo with the source code of this project which is used by ACR to build our images"
+}

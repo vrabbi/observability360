@@ -16,7 +16,7 @@ resource "azurerm_container_registry_task" "product" {
   }
   docker_step {
     dockerfile_path = "product/Dockerfile"
-    context_path       = "https://github.com/vrabbi/observability360#main:online_store"
+    context_path       = "${var.github_repo_url}#${var.github_repo_branch}:online_store"
     image_names      = [local.online_store_product_image_name]
     context_access_token = var.github_token
   }

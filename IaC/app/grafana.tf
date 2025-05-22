@@ -31,7 +31,7 @@ resource "azurerm_kusto_database_principal_assignment" "grafana_to_adx" {
   database_name       = data.azurerm_kusto_database.otel.name
 
   tenant_id      = data.azuread_client_config.current.tenant_id
-  principal_id   = azuread_application.grafana_to_adx.client_id
+  principal_id   = azuread_service_principal.grafana_to_adx.object_id
   principal_type = "App"
   role           = "Viewer"
 }
@@ -47,6 +47,7 @@ resource "azuread_service_principal_password" "grafana_to_adx" {
   service_principal_id = azuread_service_principal.grafana_to_adx.id
   depends_on = [ azurerm_kusto_database_principal_assignment.grafana_to_adx ]
 }
+
 resource "kubernetes_secret" "adx_datasource" {
   metadata {
     name      = "adx-datasource"
@@ -110,7 +111,7 @@ resource "azurerm_container_registry_task" "grafana" {
   }
   docker_step {
     dockerfile_path = "Dockerfile"
-    context_path       = "https://github.com/vrabbi/observability360#main:grafana"
+    context_path       = "${var.github_repo_url}#${var.github_repo_branch}:grafana"
     image_names      = [local.grafana_image_name]
     context_access_token = var.github_token
   }

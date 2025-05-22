@@ -45,22 +45,22 @@ resource "local_file" "otel_collector_config" {
 }
 
 # OTEL Collector Kubernetes Resources
-resource "kubernetes_namespace" "opentelemtry" {
+resource "kubernetes_namespace" "opentelemetry" {
   metadata {
-    name = "opentelemtry"
+    name = "opentelemetry"
   }
 }
 
-resource "kubernetes_service_account" "opentelemtry" {
+resource "kubernetes_service_account" "opentelemetry" {
   metadata {
-    name      = "opentelemtry"
-    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
+    name      = "opentelemetry"
+    namespace = kubernetes_namespace.opentelemetry.metadata[0].name
   }
 }
 
-resource "kubernetes_cluster_role" "opentelemtry" {
+resource "kubernetes_cluster_role" "opentelemetry" {
   metadata {
-    name = "opentelemtry-read"
+    name = "opentelemetry-read"
   }
 
   rule {
@@ -71,28 +71,28 @@ resource "kubernetes_cluster_role" "opentelemtry" {
 }
 
 
-resource "kubernetes_cluster_role_binding" "opentelemtry" {
+resource "kubernetes_cluster_role_binding" "opentelemetry" {
   metadata {
-    name = "opentelemtry-read"
+    name = "opentelemetry-read"
   }
 
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = "opentelemtry-read"
+    name      = "opentelemetry-read"
   }
 
   subject {
     kind      = "ServiceAccount"
-    name      = "opentelemtry"
-    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
+    name      = "opentelemetry"
+    namespace = kubernetes_namespace.opentelemetry.metadata[0].name
   }
 }
 
 resource "kubernetes_config_map" "collector_config" {
   metadata {
     name      = "collector-config"
-    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
+    namespace = kubernetes_namespace.opentelemetry.metadata[0].name
   }
 
   data = {
@@ -105,7 +105,7 @@ resource "kubernetes_config_map" "collector_config" {
 resource "kubernetes_daemonset" "otel_collector" {
   metadata {
     name      = "otel-collector"
-    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
+    namespace = kubernetes_namespace.opentelemetry.metadata[0].name
   }
 
   spec {
@@ -123,7 +123,7 @@ resource "kubernetes_daemonset" "otel_collector" {
       }
 
       spec {
-        service_account_name = kubernetes_service_account.opentelemtry.metadata[0].name
+        service_account_name = kubernetes_service_account.opentelemetry.metadata[0].name
         container {
           name  = "otel-collector"
           image = "otel/opentelemetry-collector-contrib:0.120.0"
@@ -181,7 +181,7 @@ resource "kubernetes_daemonset" "otel_collector" {
 resource "kubernetes_service" "otel_collector" {
   metadata {
     name      = "otel-collector"
-    namespace = kubernetes_namespace.opentelemtry.metadata[0].name
+    namespace = kubernetes_namespace.opentelemetry.metadata[0].name
   }
 
   spec {

@@ -67,7 +67,7 @@ resource "azurerm_container_registry_task" "jaeger_plugin" {
   }
   docker_step {
     dockerfile_path = "Dockerfile"
-    context_path       = "https://github.com/vrabbi/observability360#main:jaeger/plugin"
+    context_path       = "${var.github_repo_url}#${var.github_repo_branch}:jaeger/plugin"
     image_names      = [local.jaeger_kusto_plugin_image_name]
     context_access_token = var.github_token
   }
