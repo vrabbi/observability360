@@ -1,38 +1,35 @@
 locals {
-  online_store_ui_image_name     = "${local.online_store_docker_images_name_prefix}-ui:latest"
+  online_store_ui_image_name     = "${local.online_store_docker_images_name_prefix}-ui"
   online_store_ui_directory_name = "ui"
   online_store_ui_directory_path = "${local.online_store_directory_path}/${local.online_store_ui_directory_name}"
 }
 
-
-resource "docker_image" "online_store_ui" {
-  name         = "${data.azurerm_container_registry.demo.login_server}/${local.online_store_ui_image_name}"
-  keep_locally = false
-
-  build {
-    context    = "${path.cwd}/${local.online_store_directory_path}"
-    dockerfile = "${local.online_store_ui_directory_name}/Dockerfile"
-    platform   = "linux/amd64"
+resource "azurerm_container_registry_task" "ui" {
+  name                 = "ui-task"
+  container_registry_id = data.azurerm_container_registry.demo.id
+  tags = {
+    owner = var.email
   }
-
-  triggers = {
-    dir_sha1      = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_ui_directory_path}/*") : filesha1(f)]))
-    dir_sha1_otel = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_otel_directory_path}/*") : filesha1(f)]))
+  platform {
+    os      = "Linux"
+    architecture = "amd64"
   }
-}
-
-resource "docker_registry_image" "online_store_ui" {
-  name          = docker_image.online_store_ui.name
-  keep_remotely = true
-
-  triggers = {
-    dir_sha1      = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_ui_directory_path}/*") : filesha1(f)]))
-    dir_sha1_otel = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_otel_directory_path}/*") : filesha1(f)]))
+  docker_step {
+    dockerfile_path = "ui/Dockerfile"
+    context_path       = "https://github.com/vrabbi/observability360#main:online_store"
+    image_names      = [local.online_store_ui_image_name]
+    context_access_token = var.github_token
   }
 }
 
+resource "azurerm_container_registry_task_schedule_run_now" "ui" {
+  container_registry_task_id = azurerm_container_registry_task.ui.id
+}
 
 resource "kubernetes_deployment" "online_store_ui" {
+  depends_on = [
+    azurerm_container_registry_task_schedule_run_now.ui
+  ]
   metadata {
     name      = "online-store-ui"
     namespace = kubernetes_namespace.online_store.metadata[0].name
@@ -57,7 +54,7 @@ resource "kubernetes_deployment" "online_store_ui" {
       spec {
         container {
           name  = "online-store-ui"
-          image = docker_registry_image.online_store_ui.name
+          image = "${data.azurerm_container_registry.demo.login_server}/${local.online_store_ui_image_name}"
           resources {
             limits = {
               cpu    = "0.5"
@@ -104,7 +101,6 @@ resource "kubernetes_deployment" "online_store_ui" {
       }
     }
   }
-  depends_on = [docker_registry_image.online_store_ui]
 }
 
 resource "kubernetes_service" "online_store_ui" {

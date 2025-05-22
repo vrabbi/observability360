@@ -1,38 +1,35 @@
 locals {
-  online_store_product_image_name     = "${local.online_store_docker_images_name_prefix}-product:latest"
+  online_store_product_image_name     = "${local.online_store_docker_images_name_prefix}-product"
   online_store_product_directory_name = "product"
   online_store_product_directory_path = "${local.online_store_directory_path}/${local.online_store_product_directory_name}"
 }
 
-
-resource "docker_image" "online_store_product" {
-  name         = "${data.azurerm_container_registry.demo.login_server}/${local.online_store_product_image_name}"
-  keep_locally = false
-
-  build {
-    context    = "${path.cwd}/${local.online_store_directory_path}"
-    dockerfile = "${local.online_store_product_directory_name}/Dockerfile"
-    platform   = "linux/amd64"
+resource "azurerm_container_registry_task" "product" {
+  name                 = "product-task"
+  container_registry_id = data.azurerm_container_registry.demo.id
+  tags = {
+    owner = var.email
   }
-
-  triggers = {
-    dir_sha1      = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_product_directory_path}/*") : filesha1(f)]))
-    dir_sha1_otel = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_otel_directory_path}/*") : filesha1(f)]))
+  platform {
+    os      = "Linux"
+    architecture = "amd64"
   }
-}
-
-resource "docker_registry_image" "online_store_product" {
-  name          = docker_image.online_store_product.name
-  keep_remotely = true
-
-  triggers = {
-    dir_sha1      = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_product_directory_path}/*") : filesha1(f)]))
-    dir_sha1_otel = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_otel_directory_path}/*") : filesha1(f)]))
+  docker_step {
+    dockerfile_path = "product/Dockerfile"
+    context_path       = "https://github.com/vrabbi/observability360#main:online_store"
+    image_names      = [local.online_store_product_image_name]
+    context_access_token = var.github_token
   }
 }
 
+resource "azurerm_container_registry_task_schedule_run_now" "product" {
+  container_registry_task_id = azurerm_container_registry_task.product.id
+}
 
 resource "kubernetes_deployment" "online_store_product" {
+  depends_on = [
+    azurerm_container_registry_task_schedule_run_now.product
+  ]
   metadata {
     name      = "online-store-product"
     namespace = kubernetes_namespace.online_store.metadata[0].name
@@ -57,7 +54,7 @@ resource "kubernetes_deployment" "online_store_product" {
       spec {
         container {
           name  = "online-store-product"
-          image = docker_registry_image.online_store_product.name
+          image = "${data.azurerm_container_registry.demo.login_server}/${local.online_store_product_image_name}"
           resources {
             limits = {
               cpu    = "0.5"
@@ -99,7 +96,6 @@ resource "kubernetes_deployment" "online_store_product" {
       }
     }
   }
-  depends_on = [docker_registry_image.online_store_product]
 }
 
 resource "kubernetes_service" "online_store_product" {

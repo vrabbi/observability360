@@ -1,38 +1,36 @@
 locals {
-  online_store_cart_image_name     = "${local.online_store_docker_images_name_prefix}-cart:latest"
+  online_store_cart_image_name     = "${local.online_store_docker_images_name_prefix}-cart"
   online_store_cart_directory_name = "cart"
   online_store_cart_directory_path = "${local.online_store_directory_path}/${local.online_store_cart_directory_name}"
 }
 
-
-resource "docker_image" "online_store_cart" {
-  name         = "${data.azurerm_container_registry.demo.login_server}/${local.online_store_cart_image_name}"
-  keep_locally = false
-
-  build {
-    context    = "${path.cwd}/${local.online_store_directory_path}"
-    dockerfile = "${local.online_store_cart_directory_name}/Dockerfile"
-    platform   = "linux/amd64"
+resource "azurerm_container_registry_task" "cart" {
+  name                 = "cart-task"
+  container_registry_id = data.azurerm_container_registry.demo.id
+  tags = {
+    owner = var.email
   }
-
-  triggers = {
-    dir_sha1      = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_cart_directory_path}/*") : filesha1(f)]))
-    dir_sha1_otel = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_otel_directory_path}/*") : filesha1(f)]))
+  platform {
+    os      = "Linux"
+    architecture = "amd64"
+  }
+  docker_step {
+    dockerfile_path = "cart/Dockerfile"
+    context_path       = "https://github.com/vrabbi/observability360#main:online_store"
+    image_names      = [local.online_store_cart_image_name]
+    context_access_token = var.github_token
   }
 }
 
-resource "docker_registry_image" "online_store_cart" {
-  name          = docker_image.online_store_cart.name
-  keep_remotely = true
-
-  triggers = {
-    dir_sha1      = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_cart_directory_path}/*") : filesha1(f)]))
-    dir_sha1_otel = sha1(join("", [for f in fileset(path.cwd, "${local.online_store_otel_directory_path}/*") : filesha1(f)]))
-  }
+resource "azurerm_container_registry_task_schedule_run_now" "cart" {
+  container_registry_task_id = azurerm_container_registry_task.cart.id
 }
 
 
 resource "kubernetes_deployment" "online_store_cart" {
+  depends_on = [
+    azurerm_container_registry_task_schedule_run_now.cart
+  ]
   metadata {
     name      = "online-store-cart"
     namespace = kubernetes_namespace.online_store.metadata[0].name
@@ -57,7 +55,7 @@ resource "kubernetes_deployment" "online_store_cart" {
       spec {
         container {
           name  = "online-store-cart"
-          image = docker_registry_image.online_store_cart.name
+          image = "${data.azurerm_container_registry.demo.login_server}/${local.online_store_cart_image_name}"
           resources {
             limits = {
               cpu    = "0.5"
@@ -99,8 +97,6 @@ resource "kubernetes_deployment" "online_store_cart" {
       }
     }
   }
-
-  depends_on = [docker_registry_image.online_store_cart]
 }
 
 resource "kubernetes_service" "online_store_cart" {
