@@ -66,7 +66,7 @@ online_store_ui_loadbalancer_ip = "<online_store_ui_public_ip>"
 ### 3. Configure Pixie
 Go to the pixie dashboard and configure the OTEL Plugin based on the docs [here](https://docs.px.dev/reference/plugins/plugin-system/#enabling-a-plugin)
 
-the otel collector address is: `otel-collector.opentelemtry.svc.cluster.local:4317`
+the otel collector address is: `otel-collector.opentelemetry.svc.cluster.local:4317`
 ### 3. Validate functionallity
 
 Navigate to the online store ui and start to play with the application, After that navigate to the grafana instance to see the telemetry visualization (it might take few minutes for the data to arrive).

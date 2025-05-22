@@ -73,7 +73,7 @@ resource "kubernetes_deployment" "online_store_order" {
 
           env {
             name  = "OTEL_EXPORTER_OTLP_ENDPOINT"
-            value = "http://${kubernetes_service.otel_collector.metadata[0].name}.${kubernetes_namespace.opentelemtry.metadata[0].name}.svc.cluster.local:4317"
+            value = "http://${kubernetes_service.otel_collector.metadata[0].name}.${kubernetes_namespace.opentelemetry.metadata[0].name}.svc.cluster.local:4317"
           }
 
           env {
