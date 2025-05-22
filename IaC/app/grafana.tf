@@ -1,5 +1,5 @@
 locals {
-  grafana_image_name     = "${var.base_name}-grafana:latest"
+  grafana_image_name     = "${var.base_name}-grafana"
   grafana_directory_path = "../../grafana"
 }
 
@@ -47,58 +47,77 @@ resource "azuread_service_principal_password" "grafana_to_adx" {
   service_principal_id = azuread_service_principal.grafana_to_adx.id
   depends_on = [ azurerm_kusto_database_principal_assignment.grafana_to_adx ]
 }
-
-resource "local_file" "adx_datasource" {
-  filename = "${path.cwd}/${local.grafana_directory_path}/provisioning/datasources/adx-datasource.yml"
-  content = templatefile("${path.cwd}/${local.grafana_directory_path}/provisioning/datasources/adx-datasource.yml.tftpl", {
-    adx_fqdn              = data.azurerm_kusto_cluster.demo.uri
-    adx_database          = data.azurerm_kusto_database.otel.name
-    grafana_client_id     = azuread_application.grafana_to_adx.client_id
-    grafana_client_secret = azuread_service_principal_password.grafana_to_adx.value
-    tenant_id             = data.azuread_client_config.current.tenant_id
-  })
-}
-
-resource "local_file" "grafana_ini" {
-  filename = "${path.cwd}/${local.grafana_directory_path}/grafana.ini"
-  content = templatefile("${path.cwd}/${local.grafana_directory_path}/grafana.ini.tftpl", {
-    user = "${azurerm_communication_service.demo.name}|${azuread_application.grafana_to_adx.client_id}|${data.azuread_client_config.current.tenant_id}"
-    password = tolist(azuread_application.grafana_to_adx.password).0.value
-    from_address = azurerm_email_communication_service_domain.demo.mail_from_sender_domain
-  })
-}
-
-resource "local_file" "contact_group" {
-  filename = "${path.cwd}/${local.grafana_directory_path}/provisioning/alerting/contact_group.yml"
-  content = templatefile("${path.cwd}/${local.grafana_directory_path}/provisioning/alerting/contact_group.yml.tftpl", {
-    email = var.email
-  })
-}
-
-resource "docker_image" "grafana" {
-  name         = "${data.azurerm_container_registry.demo.login_server}/${local.grafana_image_name}"
-  keep_locally = false
-
-  build {
-    context  = "${path.cwd}/${local.grafana_directory_path}"
-    platform = "linux/amd64"
+resource "kubernetes_secret" "adx_datasource" {
+  metadata {
+    name      = "adx-datasource"
+    namespace = kubernetes_namespace.grafana.metadata[0].name
   }
 
-  triggers = {
-    dir_sha1 = sha1(join("", [for f in fileset(path.cwd, "${local.grafana_directory_path}/**") : filesha1(f)]))
+  data = {
+    "adx-datasource.yml" = templatefile("${path.cwd}/${local.grafana_directory_path}/provisioning/datasources/adx-datasource.yml.tftpl", {
+      adx_fqdn              = data.azurerm_kusto_cluster.demo.uri
+      adx_database          = data.azurerm_kusto_database.otel.name
+      grafana_client_id     = azuread_application.grafana_to_adx.client_id
+      grafana_client_secret = azuread_service_principal_password.grafana_to_adx.value
+      tenant_id             = data.azuread_client_config.current.tenant_id
+    })
   }
 
-  depends_on = [local_file.adx_datasource, local_file.grafana_ini]
+  type = "Opaque"
 }
 
-resource "docker_registry_image" "grafana" {
-  name          = docker_image.grafana.name
-  keep_remotely = true
-
-  triggers = {
-    dir_sha1 = sha1(join("", [for f in fileset(path.cwd, "${local.grafana_directory_path}/**") : filesha1(f)]))
+resource "kubernetes_secret" "grafana_ini" {
+  metadata {
+    name      = "grafana-ini"
+    namespace = kubernetes_namespace.grafana.metadata[0].name
   }
-  depends_on = [docker_image.grafana]
+
+  data = {
+    "grafana.ini" = templatefile("${path.cwd}/${local.grafana_directory_path}/grafana.ini.tftpl", {
+      user         = "${azurerm_communication_service.demo.name}|${azuread_application.grafana_to_adx.client_id}|${data.azuread_client_config.current.tenant_id}"
+      password     = tolist(azuread_application.grafana_to_adx.password).0.value
+      from_address = azurerm_email_communication_service_domain.demo.mail_from_sender_domain
+    })
+  }
+
+  type = "Opaque"
+}
+
+resource "kubernetes_secret" "contact_group" {
+  metadata {
+    name      = "grafana-contact-group"
+    namespace = kubernetes_namespace.grafana.metadata[0].name
+  }
+
+  data = {
+    "contact_group.yml" = templatefile("${path.cwd}/${local.grafana_directory_path}/provisioning/alerting/contact_group.yml.tftpl", {
+      email = var.email
+    })
+  }
+
+  type = "Opaque"
+}
+
+resource "azurerm_container_registry_task" "grafana" {
+  name                 = "grafana-task"
+  container_registry_id = data.azurerm_container_registry.demo.id
+  tags = {
+    owner = var.email
+  }
+  platform {
+    os      = "Linux"
+    architecture = "amd64"
+  }
+  docker_step {
+    dockerfile_path = "Dockerfile"
+    context_path       = "https://github.com/vrabbi/observability360#main:grafana"
+    image_names      = [local.grafana_image_name]
+    context_access_token = var.github_token
+  }
+}
+
+resource "azurerm_container_registry_task_schedule_run_now" "grafana" {
+  container_registry_task_id = azurerm_container_registry_task.grafana.id
 }
 
 resource "kubernetes_namespace" "grafana" {
@@ -108,6 +127,9 @@ resource "kubernetes_namespace" "grafana" {
 }
 
 resource "kubernetes_deployment" "grafana" {
+  depends_on = [
+    azurerm_container_registry_task_schedule_run_now.grafana
+  ]
   metadata {
     name      = "grafana"
     namespace = kubernetes_namespace.grafana.metadata[0].name
@@ -132,7 +154,7 @@ resource "kubernetes_deployment" "grafana" {
       spec {
         container {
           name  = "grafana"
-          image = docker_registry_image.grafana.name
+          image = "${data.azurerm_container_registry.demo.login_server}/${local.grafana_image_name}"
 
           port {
             container_port = 3000
@@ -141,6 +163,48 @@ resource "kubernetes_deployment" "grafana" {
           env {
             name  = "GF_INSTALL_PLUGINS"
             value = "grafana-opensearch-datasource,grafana-azure-data-explorer-datasource"
+          }
+
+          volume_mount {
+            name       = "grafana-ini"
+            mount_path = "/etc/grafana/grafana.ini"
+            sub_path   = "grafana.ini"
+            read_only  = true
+          }
+
+          volume_mount {
+            name       = "adx-datasource"
+            mount_path = "/etc/grafana/provisioning/datasources/adx-datasource.yml"
+            sub_path   = "adx-datasource.yml"
+            read_only  = true
+          }
+
+          volume_mount {
+            name       = "contact-group"
+            mount_path = "/etc/grafana/provisioning/alerting/contact_group.yml"
+            sub_path   = "contact_group.yml"
+            read_only  = true
+          }
+        }
+
+        volume {
+          name = "grafana-ini"
+          secret {
+            secret_name = kubernetes_secret.grafana_ini.metadata[0].name
+          }
+        }
+
+        volume {
+          name = "adx-datasource"
+          secret {
+            secret_name = kubernetes_secret.adx_datasource.metadata[0].name
+          }
+        }
+
+        volume {
+          name = "contact-group"
+          secret {
+            secret_name = kubernetes_secret.contact_group.metadata[0].name
           }
         }
       }
