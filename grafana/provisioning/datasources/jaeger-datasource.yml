@@ -1,0 +1,19 @@
+apiVersion: 1
+
+datasources:
+  - name: Jaeger
+    type: jaeger
+    uid: EbPG8fYoz
+    url: http://jaeger-lb.jaeger.svc.cluster.local:80
+    access: proxy
+    basicAuth: false
+    basicAuthUser: ""
+    readOnly: false
+    isDefault: true
+    jsonData:
+      nodeGraph:
+        enabled: true
+      traceQuery:
+        timeShiftEnabled: true
+        spanStartTimeShift: '1h'
+        spanEndTimeShift: '-1h'
