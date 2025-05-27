@@ -30,16 +30,16 @@ resource "azurerm_communication_service_email_domain_association" "demo" {
   email_service_domain_id  = azurerm_email_communication_service_domain.demo.id
 }
 
-#resource "azurerm_role_definition" "communication_service_role" {
-#  name        = "${var.base_name}-ACS_Email_Write"
-#  scope       = azurerm_communication_service.demo.id
-#  description = "Allows for full access to the Azure Communication Service resource, including the ability to manage data and settings."
-#  permissions {
-#    actions = [
-#      "*/read",
-#      "Microsoft.Communication/CommunicationServices/Read",
-#      "Microsoft.Communication/CommunicationServices/Write",
-#      "Microsoft.Communication/EmailServices/write"
-#    ]
-#  }
-#}
+resource "azurerm_role_definition" "communication_service_role" {
+  name        = "${var.base_name}-ACS_Email_Write"
+  scope       = azurerm_communication_service.demo.id
+  description = "Allows for full access to the Azure Communication Service resource, including the ability to manage data and settings."
+  permissions {
+    actions = [
+      "*/read",
+      "Microsoft.Communication/CommunicationServices/Read",
+      "Microsoft.Communication/CommunicationServices/Write",
+      "Microsoft.Communication/EmailServices/write"
+    ]
+  }
+}

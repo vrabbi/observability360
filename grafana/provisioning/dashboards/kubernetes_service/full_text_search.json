@@ -1,0 +1,633 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 17,
+    "links": [],
+    "panels": [
+      {
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 7,
+        "options": {
+          "code": {
+            "language": "plaintext",
+            "showLineNumbers": false,
+            "showMiniMap": false
+          },
+          "content": "# Full Text Search Dashboard\nThis Dashboard can run a full text search against all logs and metrics collected by ADX and return the relevant results.\n\nThe search is:\n1. Case insensitive \n2. Uses the regex pattern of \\*<SEARCH QUERY>\\* to allow for non exact matches\n3. Based on the Timeframe selected at the top of the dashboard",
+          "mode": "markdown"
+        },
+        "pluginVersion": "11.4.0",
+        "title": "Overview",
+        "type": "text"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 7
+        },
+        "id": 6,
+        "panels": [
+          {
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "${datasource}"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto",
+                    "wrapText": true
+                  },
+                  "inspect": false
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Stream"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 80
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "PodIP"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 110
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Namespace"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 124
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Timestamp"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 223
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Node"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 336
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Pod"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 313
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 10,
+              "w": 24,
+              "x": 0,
+              "y": 8
+            },
+            "id": 1,
+            "options": {
+              "cellHeight": "sm",
+              "footer": {
+                "countRows": false,
+                "fields": "",
+                "reducer": [
+                  "sum"
+                ],
+                "show": false
+              },
+              "showHeader": true,
+              "sortBy": []
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+              {
+                "OpenAI": false,
+                "database": "openteldb",
+                "datasource": {
+                  "type": "grafana-azure-data-explorer-datasource",
+                  "uid": "${datasource}"
+                },
+                "expression": {
+                  "groupBy": {
+                    "expressions": [],
+                    "type": "and"
+                  },
+                  "reduce": {
+                    "expressions": [],
+                    "type": "and"
+                  },
+                  "where": {
+                    "expressions": [],
+                    "type": "and"
+                  }
+                },
+                "pluginVersion": "6.0.1",
+                "query": "OTELLogs\r\n| where $__timeFilter(Timestamp)\r\n| search Body: \"*${search}*\"\r\n| extend BodyJson = parse_json(Body)\r\n| extend Namespace = tostring(BodyJson[\"kubernetes_namespace_name\"])\r\n| extend Pod = tostring(BodyJson[\"kubernetes_pod_name\"])\r\n| extend Node = tostring(BodyJson[\"kubernetes_host\"])\r\n| extend PodIP = tostring(BodyJson[\"kubernetes_pod_ip\"])\r\n| extend Stream = tostring(BodyJson[\"stream\"])\r\n| extend Log = tostring(BodyJson[\"log\"])\r\n| where isnull(BodyJson[\"KubeEventType\"]) or BodyJson[\"KubeEventType\"] == \"\"\r\n| project Timestamp, Namespace, Pod, PodIP, Node, Stream, Log",
+                "querySource": "raw",
+                "queryType": "KQL",
+                "rawMode": true,
+                "refId": "A",
+                "resultFormat": "table"
+              }
+            ],
+            "title": "Log Results",
+            "type": "table"
+          }
+        ],
+        "title": "Logs",
+        "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        },
+        "id": 5,
+        "panels": [
+          {
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "${datasource}"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto",
+                    "wrapText": true
+                  },
+                  "inspect": false
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Stream"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 80
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "PodIP"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 110
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Namespace"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 124
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Timestamp"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 223
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Node"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 336
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Pod"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 313
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 10,
+              "w": 24,
+              "x": 0,
+              "y": 19
+            },
+            "id": 3,
+            "options": {
+              "cellHeight": "sm",
+              "footer": {
+                "countRows": false,
+                "fields": "",
+                "reducer": [
+                  "sum"
+                ],
+                "show": false
+              },
+              "showHeader": true,
+              "sortBy": [
+                {
+                  "desc": true,
+                  "displayName": "Count"
+                }
+              ]
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+              {
+                "OpenAI": false,
+                "database": "openteldb",
+                "datasource": {
+                  "type": "grafana-azure-data-explorer-datasource",
+                  "uid": "${datasource}"
+                },
+                "expression": {
+                  "groupBy": {
+                    "expressions": [],
+                    "type": "and"
+                  },
+                  "reduce": {
+                    "expressions": [],
+                    "type": "and"
+                  },
+                  "where": {
+                    "expressions": [],
+                    "type": "and"
+                  }
+                },
+                "pluginVersion": "6.0.1",
+                "query": "OTELLogs\r\n| where $__timeFilter(Timestamp)\r\n| search Body: \"*${search}*\"\r\n| extend BodyJson = parse_json(Body)\r\n| where isnotnull(BodyJson[\"KubeEventType\"])\r\n| extend Namespace = tostring(BodyJson[\"Namespace\"])\r\n| extend Name = tostring(BodyJson[\"Name\"])\r\n| extend Kind = tostring(BodyJson[\"Kind\"])\r\n| extend FirstSeen = tostring(BodyJson[\"FirstSeen\"])\r\n| extend Count = tostring(BodyJson[\"Count\"])\r\n| extend KubeEventType = tostring(BodyJson[\"KubeEventType\"])\r\n| extend LastSeen = tostring(BodyJson[\"LastSeen\"])\r\n| extend Message = tostring(BodyJson[\"Message\"])\r\n| extend ReportingComponent = tostring(BodyJson[\"ReportingComponent\"])\r\n| extend Reason = tostring(BodyJson[\"Reason\"])\r\n| project Kind, Namespace, Name, FirstSeen, LastSeen, Count, KubeEventType, Message, Reason, ReportingComponent",
+                "querySource": "raw",
+                "queryType": "KQL",
+                "rawMode": true,
+                "refId": "A",
+                "resultFormat": "table"
+              }
+            ],
+            "title": "Kubernetes Events Results",
+            "type": "table"
+          }
+        ],
+        "title": "Events",
+        "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 9
+        },
+        "id": 4,
+        "panels": [
+          {
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "${datasource}"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto",
+                    "wrapText": true
+                  },
+                  "inspect": false
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Stream"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 80
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "PodIP"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 110
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Namespace"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 124
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Timestamp"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 223
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Node"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 336
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Pod"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 313
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 10,
+              "w": 24,
+              "x": 0,
+              "y": 20
+            },
+            "id": 2,
+            "options": {
+              "cellHeight": "sm",
+              "footer": {
+                "countRows": false,
+                "fields": "",
+                "reducer": [
+                  "sum"
+                ],
+                "show": false
+              },
+              "showHeader": true,
+              "sortBy": []
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+              {
+                "OpenAI": false,
+                "database": "openteldb",
+                "datasource": {
+                  "type": "grafana-azure-data-explorer-datasource",
+                  "uid": "${datasource}"
+                },
+                "expression": {
+                  "groupBy": {
+                    "expressions": [],
+                    "type": "and"
+                  },
+                  "reduce": {
+                    "expressions": [],
+                    "type": "and"
+                  },
+                  "where": {
+                    "expressions": [],
+                    "type": "and"
+                  }
+                },
+                "pluginVersion": "6.0.1",
+                "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| search \"*${search}*\" \r\n| extend Namespace = coalesce(\r\n    tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"]),\r\n    tostring(parse_json(MetricAttributes)[\"namespace\"]),\r\n    iif(\r\n        isnotempty(parse_json(ResourceAttributes)[\"server.address\"]),\r\n        split(tostring(parse_json(ResourceAttributes)[\"server.address\"]), \".\")[1],\r\n        \"\"\r\n    )\r\n  )\r\n| extend Pod = coalesce(\r\n    tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]),\r\n    tostring(parse_json(MetricAttributes)[\"pod\"]),\r\n    iif(\r\n        isnotempty(parse_json(ResourceAttributes)[\"server.address\"]),\r\n        strcat(split(tostring(parse_json(ResourceAttributes)[\"server.address\"]), \".\")[0], \"-*\"),\r\n        \"\"\r\n    )\r\n  )\r\n| project Timestamp, Namespace, Pod, MetricName , MetricValue, MetricType, MetricAttributes, ResourceAttributes\r\n| take 1000",
+                "querySource": "raw",
+                "queryType": "KQL",
+                "rawMode": true,
+                "refId": "A",
+                "resultFormat": "table"
+              }
+            ],
+            "title": "Metric Results",
+            "type": "table"
+          }
+        ],
+        "title": "Metrics",
+        "type": "row"
+      }
+    ],
+    "preload": false,
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "Azure Data Explorer",
+            "value": "OBS360DataSource"
+          },
+          "label": "Data Source",
+          "name": "datasource",
+          "options": [],
+          "query": "grafana-azure-data-explorer-datasource",
+          "refresh": 1,
+          "regex": "",
+          "type": "datasource"
+        },
+        {
+          "current": {
+            "text": "error",
+            "value": "error"
+          },
+          "label": "Text To Search",
+          "name": "search",
+          "options": [
+            {
+              "selected": true,
+              "text": "error",
+              "value": "error"
+            }
+          ],
+          "query": "error",
+          "type": "textbox"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Full Text Search - ADX",
+    "uid": "",
+    "version": 12,
+    "weekStart": ""
+  }

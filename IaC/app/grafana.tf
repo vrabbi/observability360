@@ -36,12 +36,12 @@ resource "azurerm_kusto_database_principal_assignment" "grafana_to_adx" {
   role           = "Viewer"
 }
 
-#resource "azurerm_role_assignment" "grafana_to_communication_service" {
-#  scope                = azurerm_communication_service.demo.id
-#  role_definition_name = azurerm_role_definition.communication_service_role.name
-#  principal_id         = azuread_service_principal.grafana_to_adx.object_id
-#  principal_type = "ServicePrincipal"
-#}
+resource "azurerm_role_assignment" "grafana_to_communication_service" {
+  scope                = azurerm_communication_service.demo.id
+  role_definition_name = azurerm_role_definition.communication_service_role.name
+  principal_id         = azuread_service_principal.grafana_to_adx.object_id
+  principal_type = "ServicePrincipal"
+}
 
 resource "azuread_service_principal_password" "grafana_to_adx" {
   service_principal_id = azuread_service_principal.grafana_to_adx.id

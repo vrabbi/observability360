@@ -1,1140 +1,1116 @@
 {
-    "__inputs": [
+  "annotations": {
+    "list": [
       {
-        "name": "DS_AZURE_DATA EXPLORER",
-        "label": "Azure Data Explorer",
-        "description": "",
-        "type": "datasource",
-        "pluginId": "grafana-azure-data-explorer-datasource",
-        "pluginName": "Azure Data Explorer Datasource"
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
       }
-    ],
-    "__elements": {},
-    "__requires": [
-      {
-        "type": "grafana",
-        "id": "grafana",
-        "name": "Grafana",
-        "version": "11.4.0"
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 15,
+  "links": [
+    {
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [
+        "kubernetes-mixin"
+      ],
+      "targetBlank": false,
+      "title": "Kubernetes",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
       },
-      {
-        "type": "datasource",
-        "id": "grafana-azure-data-explorer-datasource",
-        "name": "Azure Data Explorer Datasource",
-        "version": "6.0.1"
-      },
-      {
-        "type": "datasource",
-        "id": "jaeger",
-        "name": "Jaeger",
-        "version": "11.3.1"
-      },
-      {
-        "type": "panel",
-        "id": "timeseries",
-        "name": "Time series",
-        "version": ""
-      }
-    ],
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
           },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "type": "dashboard"
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
-      ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": null,
-    "links": [
-      {
-        "asDropdown": true,
-        "includeVars": true,
-        "keepTime": true,
-        "tags": [
-          "kubernetes-mixin"
-        ],
-        "targetBlank": false,
-        "title": "Kubernetes",
-        "type": "dashboards"
-      }
-    ],
-    "panels": [
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 0,
-          "y": 0
-        },
-        "id": 1,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_bytes\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Bytes Recieved for pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
       },
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 12,
-          "y": 0
-        },
-        "id": 2,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_bytes\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Bytes Transmitted by the pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 0,
-          "y": 9
-        },
-        "id": 3,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_packets\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Packets Recieved by the pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 12,
-          "y": 9
-        },
-        "id": 4,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_packets\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Packets Transmitted by the pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 0,
-          "y": 18
-        },
-        "id": 5,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_errors\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Network Errors Recieved by the pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 12,
-          "y": 18
-        },
-        "id": 6,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_errors\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Network Errors Transmitted by the pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 0,
-          "y": 27
-        },
-        "id": 7,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_drops\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Network Drops Recieved by the pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "grafana-azure-data-explorer-datasource",
-          "uid": "${DS_AZURE_DATA EXPLORER}"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "barWidthFactor": 0.6,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 12,
-          "x": 12,
-          "y": 27
-        },
-        "id": 8,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${datasource}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "hide": false,
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_drops\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Network Drops Transmitted by the pod ${pod} in namespace ${namespace}",
-        "type": "timeseries"
-      }
-    ],
-    "refresh": "10s",
-    "schemaVersion": 40,
-    "tags": [],
-    "templating": {
-      "list": [
+      "pluginVersion": "11.4.0",
+      "targets": [
         {
-          "current": {},
-          "label": "Data source",
-          "name": "datasource",
-          "options": [],
-          "query": "grafana-azure-data-explorer-datasource",
-          "refresh": 1,
-          "regex": "",
-          "type": "datasource"
-        },
-        {
-          "allValue": ".*",
-          "current": {},
-          "datasource": {
-            "type": "grafana-azure-data-explorer-datasource",
-            "uid": "${DS_AZURE_DATA EXPLORER}"
-          },
-          "definition": "label_values(up{job=\"kube-state-metrics\"}, cluster)",
-          "hide": 2,
-          "label": "cluster",
-          "name": "cluster",
-          "options": [],
-          "query": {
-            "clusterUri": "",
-            "database": "openteldb",
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "pluginVersion": "6.0.1",
-            "query": "label_values(up{job=\"kube-state-metrics\"}, cluster)",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "adx-label_values(up{job=\"kube-state-metrics\"}, cluster)",
-            "resultFormat": "table"
-          },
-          "refresh": 2,
-          "sort": 1,
-          "type": "query"
-        },
-        {
-          "current": {},
+          "OpenAI": false,
+          "database": "openteldb",
           "datasource": {
             "type": "grafana-azure-data-explorer-datasource",
             "uid": "${datasource}"
           },
-          "definition": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| project NamespaceName",
-          "label": "namespace",
-          "name": "namespace",
-          "options": [],
-          "query": {
-            "OpenAI": false,
-            "clusterUri": "",
-            "database": "openteldb",
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
             },
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| project NamespaceName",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "resultFormat": "table"
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
           },
-          "refresh": 2,
-          "sort": 1,
-          "type": "query"
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_bytes\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Bytes Recieved for pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
         },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
         {
-          "current": {},
+          "OpenAI": false,
+          "database": "openteldb",
           "datasource": {
             "type": "grafana-azure-data-explorer-datasource",
-            "uid": "${DS_AZURE_DATA EXPLORER}"
+            "uid": "${datasource}"
           },
-          "definition": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| extend PodName = tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"])\r\n| where NamespaceName == \"${namespace}\"\r\n| project PodName",
-          "label": "pod",
-          "name": "pod",
-          "options": [],
-          "query": {
-            "clusterUri": "",
-            "database": "openteldb",
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
             },
-            "pluginVersion": "6.0.1",
-            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| extend PodName = tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"])\r\n| where NamespaceName == \"${namespace}\"\r\n| project PodName",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "adx-label_values(kube_pod_info{job=\"kube-state-metrics\", cluster=\"$cluster\", namespace=\"$namespace\"}, pod)",
-            "resultFormat": "table"
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
           },
-          "refresh": 2,
-          "sort": 1,
-          "type": "query"
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_bytes\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
         }
-      ]
+      ],
+      "title": "Bytes Transmitted by the pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
     },
-    "time": {
-      "from": "now-1h",
-      "to": "now"
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_packets\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Packets Recieved by the pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
     },
-    "timepicker": {},
-    "timezone": "utc",
-    "title": "Network Monitoring - Pixie",
-    "uid": "",
-    "version": 2,
-    "weekStart": ""
-  }
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_packets\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Packets Transmitted by the pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_errors\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Network Errors Recieved by the pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_errors\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Network Errors Transmitted by the pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.rx_drops\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Network Drops Recieved by the pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "hide": false,
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend PixieMetric = tostring(parse_json(ResourceAttributes)[\"px.cloud.address\"])\r\n| where PixieMetric == \"getcosmic.ai:443\"\r\n| where MetricName == \"network_stats.tx_drops\"\r\n| extend PodName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[1]\r\n| extend NamespaceName = split(tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"]), \"/\")[0]\r\n| where PodName == \"${pod}\"",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Network Drops Transmitted by the pod ${pod} in namespace ${namespace}",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 40,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "Azure Data Explorer",
+          "value": "OBS360DataSource"
+        },
+        "label": "Data source",
+        "name": "datasource",
+        "options": [],
+        "query": "grafana-azure-data-explorer-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "definition": "label_values(up{job=\"kube-state-metrics\"}, cluster)",
+        "hide": 2,
+        "label": "cluster",
+        "name": "cluster",
+        "options": [],
+        "query": {
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "label_values(up{job=\"kube-state-metrics\"}, cluster)",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "adx-label_values(up{job=\"kube-state-metrics\"}, cluster)",
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "kube-system",
+          "value": "kube-system"
+        },
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "${datasource}"
+        },
+        "definition": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| project NamespaceName",
+        "label": "namespace",
+        "name": "namespace",
+        "options": [],
+        "query": {
+          "OpenAI": false,
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| project NamespaceName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "konnectivity-agent-75dbdd4f6b-brqzd",
+          "value": "konnectivity-agent-75dbdd4f6b-brqzd"
+        },
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "definition": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| extend PodName = tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"])\r\n| where NamespaceName == \"${namespace}\"\r\n| project PodName",
+        "label": "pod",
+        "name": "pod",
+        "options": [],
+        "query": {
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"k8s.pod.cpu.utilization\"\r\n| extend NamespaceName = tostring(parse_json(ResourceAttributes)[\"k8s.namespace.name\"])\r\n| extend PodName = tostring(parse_json(ResourceAttributes)[\"k8s.pod.name\"])\r\n| where NamespaceName == \"${namespace}\"\r\n| project PodName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "adx-label_values(kube_pod_info{job=\"kube-state-metrics\", cluster=\"$cluster\", namespace=\"$namespace\"}, pod)",
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Network Monitoring - Pixie",
+  "uid": "den4gjz6ztiwwe",
+  "version": 10,
+  "weekStart": ""
+}
