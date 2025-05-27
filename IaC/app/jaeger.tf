@@ -71,6 +71,18 @@ resource "azurerm_container_registry_task" "jaeger_plugin" {
     image_names      = [local.jaeger_kusto_plugin_image_name]
     context_access_token = var.github_token
   }
+  source_trigger {
+    name = "git-commit"
+    events = ["commit"]
+    repository_url = var.github_repo_url
+    source_type = "Github"
+    branch = var.github_repo_branch
+    enabled = true
+    authentication {
+      token = var.github_token
+      token_type = "PAT"
+    }
+  }
 }
 
 resource "azurerm_container_registry_task_schedule_run_now" "jaeger_plugin" {
