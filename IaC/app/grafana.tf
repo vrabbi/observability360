@@ -112,7 +112,7 @@ resource "azurerm_container_registry_task" "grafana" {
   docker_step {
     dockerfile_path = "Dockerfile"
     context_path       = "${var.github_repo_url}#${var.github_repo_branch}:grafana"
-    image_names      = [local.grafana_image_name]
+    image_names      = ["${local.grafana_image_name}:latest","${local.grafana_image_name}:{{.Run.ID}}"]
     context_access_token = var.github_token
   }
   source_trigger {

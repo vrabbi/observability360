@@ -68,7 +68,7 @@ resource "azurerm_container_registry_task" "jaeger_plugin" {
   docker_step {
     dockerfile_path = "Dockerfile"
     context_path       = "${var.github_repo_url}#${var.github_repo_branch}:jaeger/plugin"
-    image_names      = [local.jaeger_kusto_plugin_image_name]
+    image_names      = ["${local.jaeger_kusto_plugin_image_name}:latest","${local.jaeger_kusto_plugin_image_name}:{{.Run.ID}}"]
     context_access_token = var.github_token
   }
   source_trigger {
