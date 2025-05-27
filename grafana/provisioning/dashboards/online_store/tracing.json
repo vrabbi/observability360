@@ -1,299 +1,299 @@
 {
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "type": "dashboard"
-        }
-      ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": 12,
-    "links": [],
-    "panels": [
+  "annotations": {
+    "list": [
       {
+        "builtIn": 1,
         "datasource": {
-          "type": "jaeger",
-          "uid": "${jaeger}"
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 8,
-          "w": 6,
-          "x": 0,
-          "y": 0
-        },
-        "id": 2,
-        "options": {
-          "edges": {},
-          "nodes": {}
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "datasource": {
-              "type": "jaeger",
-              "uid": "${DS_JAEGER}"
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 13,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "jaeger",
+        "uid": "${jaeger}"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "edges": {},
+        "nodes": {}
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "jaeger",
+            "uid": "${DS_JAEGER}"
+          },
+          "queryType": "dependencyGraph",
+          "refId": "A"
+        }
+      ],
+      "title": "Node Graph",
+      "type": "nodeGraph"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${adx}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
             },
-            "queryType": "dependencyGraph",
-            "refId": "A"
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
           }
-        ],
-        "title": "Node Graph",
-        "type": "nodeGraph"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "StartTime"
+          }
+        ]
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${DS_AZURE_DATA EXPLORER}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| sort by StartTime desc \n| project StartTime, EndTime, TraceID, SpanName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Traces",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "jaeger",
+        "uid": "${jaeger}"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {},
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "jaeger",
+            "uid": "${DS_JAEGER}"
+          },
+          "query": "${trace}",
+          "refId": "A"
+        }
+      ],
+      "title": "Trace Data",
+      "type": "traces"
+    }
+  ],
+  "preload": false,
+  "schemaVersion": 40,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "label": "ADX Data Source",
+        "name": "adx",
+        "options": [],
+        "query": "grafana-azure-data-explorer-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
       },
       {
+        "current": {},
+        "label": "Jaeger Data Source",
+        "name": "jaeger",
+        "options": [],
+        "query": "jaeger",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {},
         "datasource": {
           "type": "grafana-azure-data-explorer-datasource",
           "uid": "${adx}"
         },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
+        "definition": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
+        "label": "Service",
+        "name": "service",
+        "options": [],
+        "query": {
+          "OpenAI": false,
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
             },
-            "custom": {
-              "align": "auto",
-              "cellOptions": {
-                "type": "auto"
-              },
-              "inspect": false
+            "reduce": {
+              "expressions": [],
+              "type": "and"
             },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
+            "where": {
+              "expressions": [],
+              "type": "and"
             }
           },
-          "overrides": []
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "resultFormat": "table"
         },
-        "gridPos": {
-          "h": 8,
-          "w": 18,
-          "x": 6,
-          "y": 0
-        },
-        "id": 1,
-        "options": {
-          "cellHeight": "sm",
-          "footer": {
-            "countRows": false,
-            "fields": "",
-            "reducer": [
-              "sum"
-            ],
-            "show": false
-          },
-          "showHeader": true,
-          "sortBy": [
-            {
-              "desc": true,
-              "displayName": "StartTime"
-            }
-          ]
-        },
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "OpenAI": false,
-            "database": "openteldb",
-            "datasource": {
-              "type": "grafana-azure-data-explorer-datasource",
-              "uid": "${DS_AZURE_DATA EXPLORER}"
-            },
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "pluginVersion": "6.0.1",
-            "query": "OTELTraces\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| sort by StartTime desc \r\n| project StartTime, EndTime, TraceID, SpanName",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "refId": "A",
-            "resultFormat": "table"
-          }
-        ],
-        "title": "Traces",
-        "type": "table"
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
       },
       {
+        "current": {},
         "datasource": {
-          "type": "jaeger",
-          "uid": "${jaeger}"
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "${adx}"
         },
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 18,
-          "w": 24,
-          "x": 0,
-          "y": 8
-        },
-        "id": 3,
-        "options": {},
-        "pluginVersion": "11.4.0",
-        "targets": [
-          {
-            "datasource": {
-              "type": "jaeger",
-              "uid": "${DS_JAEGER}"
+        "definition": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| sort by StartTime desc \r\n| project TraceID",
+        "label": "Trace ID",
+        "name": "trace",
+        "options": [],
+        "query": {
+          "OpenAI": false,
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
             },
-            "query": "${trace}",
-            "refId": "A"
-          }
-        ],
-        "title": "Trace Data",
-        "type": "traces"
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| sort by StartTime desc \r\n| project TraceID",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
       }
-    ],
-    "preload": false,
-    "schemaVersion": 40,
-    "tags": [],
-    "templating": {
-      "list": [
-        {
-          "current": {},
-          "label": "ADX Data Source",
-          "name": "adx",
-          "options": [],
-          "query": "grafana-azure-data-explorer-datasource",
-          "refresh": 1,
-          "regex": "",
-          "type": "datasource"
-        },
-        {
-          "current": {},
-          "label": "Jaeger Data Source",
-          "name": "jaeger",
-          "options": [],
-          "query": "jaeger",
-          "refresh": 1,
-          "regex": "",
-          "type": "datasource"
-        },
-        {
-          "current": {},
-          "datasource": {
-            "type": "grafana-azure-data-explorer-datasource",
-            "uid": "${adx}"
-          },
-          "definition": "OTELTraces\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
-          "label": "Service",
-          "name": "service",
-          "options": [],
-          "query": {
-            "OpenAI": false,
-            "clusterUri": "",
-            "database": "openteldb",
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "pluginVersion": "6.0.1",
-            "query": "OTELTraces\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "resultFormat": "table"
-          },
-          "refresh": 1,
-          "regex": "",
-          "type": "query"
-        },
-        {
-          "current": {},
-          "datasource": {
-            "type": "grafana-azure-data-explorer-datasource",
-            "uid": "${adx}"
-          },
-          "definition": "OTELTraces\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| sort by StartTime desc \r\n| project TraceID",
-          "label": "Trace ID",
-          "name": "trace",
-          "options": [],
-          "query": {
-            "OpenAI": false,
-            "clusterUri": "",
-            "database": "openteldb",
-            "expression": {
-              "groupBy": {
-                "expressions": [],
-                "type": "and"
-              },
-              "reduce": {
-                "expressions": [],
-                "type": "and"
-              },
-              "where": {
-                "expressions": [],
-                "type": "and"
-              }
-            },
-            "pluginVersion": "6.0.1",
-            "query": "OTELTraces\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| sort by StartTime desc \r\n| project TraceID",
-            "querySource": "raw",
-            "queryType": "KQL",
-            "rawMode": true,
-            "resultFormat": "table"
-          },
-          "refresh": 1,
-          "regex": "",
-          "type": "query"
-        }
-      ]
-    },
-    "time": {
-      "from": "now-6h",
-      "to": "now"
-    },
-    "timepicker": {},
-    "timezone": "browser",
-    "title": "Tracing 101",
-    "uid": "",
-    "version": 1,
-    "weekStart": ""
-  }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Tracing 101",
+  "uid": "",
+  "version": 1,
+  "weekStart": ""
+}
