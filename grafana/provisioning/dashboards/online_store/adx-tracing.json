@@ -1,0 +1,388 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 17,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "${datasource}"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto",
+                "wrapText": true
+              },
+              "filterable": true,
+              "inspect": true
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Trace ID"
+              },
+              "properties": [
+                {
+                  "id": "links",
+                  "value": [
+                    {
+                      "targetBlank": false,
+                      "title": "",
+                      "url": "${__url.path}${__url.params:exclude:var-traceID}&var-traceID=${__data.fields[\"Trace ID\"]}"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.width",
+                  "value": 312
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Span Names"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 191
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Span Count"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 115
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Span Kinds"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 183
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Start Time"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 211
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "End Time"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 181
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Root Service"
+              },
+              "properties": [
+                {
+                  "id": "links",
+                  "value": [
+                    {
+                      "targetBlank": false,
+                      "title": "",
+                      "url": "${__url.path}${__url.params:exclude:var-service}&var-service=${__data.fields[\"Root Service\"]}"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.width",
+                  "value": 175
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 4,
+        "options": {
+          "cellHeight": "sm",
+          "footer": {
+            "countRows": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": []
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "${datasource}"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "let RelevantTraces = OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| distinct TraceID;\r\n\r\nlet RootServices = OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend \r\n    ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where isnull(ParentID) or ParentID == \"\"\r\n| project TraceID, SourceService = ServiceName;\r\n\r\nOTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend \r\n    ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"]),\r\n    TraceMatch = TraceID in (RelevantTraces)\r\n| where TraceMatch\r\n| summarize \r\n    SpanCount = count(),\r\n    SpanKinds = array_strcat(make_set(SpanKind), ',\\n'),\r\n    StartTime = min(StartTime),\r\n    EndTime = max(EndTime),\r\n    ServiceNames = array_strcat(make_set(ServiceName), ',\\n')\r\n  by TraceID\r\n| join kind=leftouter RootServices on TraceID\r\n| sort by StartTime desc\r\n| project \r\n    [\"Trace ID\"] = TraceID,\r\n    [\"Root Service\"] = SourceService,\r\n    [\"Span Count\"] = SpanCount,\r\n    [\"Span Kinds\"] = SpanKinds,\r\n    [\"Start Time\"] = StartTime,\r\n    [\"End Time\"] = EndTime,\r\n    [\"Involved Service\"] = ServiceNames",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Traces",
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "${datasource}"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 16,
+          "w": 24,
+          "x": 0,
+          "y": 13
+        },
+        "id": 3,
+        "options": {},
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "${datasource}"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "let LogsCombined =\r\n    OTELLogs\r\n    | where $__timeFilter(Timestamp)\r\n    | summarize LogsArray = make_list(\r\n        bag_pack(\r\n            \"timestamp\", tolong(Timestamp),\r\n            \"fields\", bag_pack(\r\n                \"Body\", Body\r\n            )\r\n        )\r\n    ) by TraceID;\r\nOTELTraces\r\n| where $__timeFilter(StartTime)\r\n| where TraceID == '${traceID}'\r\n| lookup LogsCombined on TraceID\r\n| project \r\n    startTime = datetime_diff('millisecond', StartTime, datetime(1970-01-01)),\r\n    itemType = SpanKind,\r\n    serviceName = tostring(ResourceAttributes[\"service.name\"]),\r\n    duration = datetime_diff('millisecond', EndTime, StartTime),\r\n    traceID = TraceID,\r\n    spanID = SpanID,\r\n    parentSpanID = ParentID,\r\n    operationName = SpanName,\r\n    logs = LogsArray,\r\n    serviceTags = ResourceAttributes,\r\n    tags = TraceAttributes\r\n",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "trace"
+          }
+        ],
+        "title": "Trace Details",
+        "type": "traces"
+      }
+    ],
+    "preload": false,
+    "refresh": "auto",
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "Azure Data Explorer",
+            "value": "OBS360DataSource"
+          },
+          "label": "ADX Data Source",
+          "name": "datasource",
+          "options": [],
+          "query": "grafana-azure-data-explorer-datasource",
+          "refresh": 1,
+          "regex": "",
+          "type": "datasource"
+        },
+        {
+          "current": {
+            "text": "Product Service",
+            "value": "Product Service"
+          },
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "definition": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
+          "label": "Service",
+          "name": "service",
+          "options": [],
+          "query": {
+            "OpenAI": false,
+            "clusterUri": "",
+            "database": "openteldb",
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "resultFormat": "table"
+          },
+          "refresh": 2,
+          "regex": "",
+          "type": "query"
+        },
+        {
+          "current": {
+            "text": "df4fb9c84194e6a520da7bca3af2cb86",
+            "value": "df4fb9c84194e6a520da7bca3af2cb86"
+          },
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "definition": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| sort by StartTime desc \r\n| project TraceID",
+          "label": "Trace ID",
+          "name": "traceID",
+          "options": [],
+          "query": {
+            "OpenAI": false,
+            "clusterUri": "",
+            "database": "openteldb",
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| sort by StartTime desc \r\n| project TraceID",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "resultFormat": "table"
+          },
+          "refresh": 2,
+          "regex": "",
+          "type": "query"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "ADX Tracing",
+    "uid": "",
+    "version": 11,
+    "weekStart": ""
+  }
