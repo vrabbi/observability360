@@ -18,7 +18,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 17,
+    "id": 10,
     "links": [],
     "panels": [
       {
@@ -180,7 +180,12 @@
             "show": false
           },
           "showHeader": true,
-          "sortBy": []
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "Trace Duration"
+            }
+          ]
         },
         "pluginVersion": "11.4.0",
         "targets": [
@@ -206,7 +211,7 @@
               }
             },
             "pluginVersion": "6.0.1",
-            "query": "let RelevantTraces = OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| distinct TraceID;\r\n\r\nlet RootServices = OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend \r\n    ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where isnull(ParentID) or ParentID == \"\"\r\n| project TraceID, SourceService = ServiceName;\r\n\r\nOTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend \r\n    ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"]),\r\n    TraceMatch = TraceID in (RelevantTraces)\r\n| where TraceMatch\r\n| summarize \r\n    SpanCount = count(),\r\n    SpanKinds = array_strcat(make_set(SpanKind), ',\\n'),\r\n    StartTime = min(StartTime),\r\n    EndTime = max(EndTime),\r\n    ServiceNames = array_strcat(make_set(ServiceName), ',\\n')\r\n  by TraceID\r\n| join kind=leftouter RootServices on TraceID\r\n| sort by StartTime desc\r\n| project \r\n    [\"Trace ID\"] = TraceID,\r\n    [\"Root Service\"] = SourceService,\r\n    [\"Span Count\"] = SpanCount,\r\n    [\"Span Kinds\"] = SpanKinds,\r\n    [\"Start Time\"] = StartTime,\r\n    [\"End Time\"] = EndTime,\r\n    [\"Involved Service\"] = ServiceNames",
+            "query": "let RelevantTraces = OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName == \"${service}\"\r\n| distinct TraceID;\r\n\r\nlet RootServices = OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend \r\n    ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where isnull(ParentID) or ParentID == \"\"\r\n| project TraceID, SourceService = ServiceName;\r\n\r\nOTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend \r\n    ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"]),\r\n    TraceMatch = TraceID in (RelevantTraces)\r\n| where TraceMatch\r\n| summarize \r\n    SpanCount = count(),\r\n    SpanKinds = array_strcat(make_set(SpanKind), ',\\n'),\r\n    StartTime = min(StartTime),\r\n    EndTime = max(EndTime),\r\n    ServiceNames = array_strcat(make_set(ServiceName), ',\\n')\r\n  by TraceID\r\n| extend DurationFormatted = format_timespan(EndTime - StartTime, \"hh:mm:ss.fff\")\r\n| join kind=leftouter RootServices on TraceID\r\n| sort by StartTime desc\r\n| project \r\n    [\"Trace ID\"] = TraceID,\r\n    [\"Root Service\"] = SourceService,\r\n    [\"Span Count\"] = SpanCount,\r\n    [\"Span Kinds\"] = SpanKinds,\r\n    [\"Start Time\"] = StartTime,\r\n    [\"End Time\"] = EndTime,\r\n    [\"Trace Duration\"] = DurationFormatted,\r\n    [\"Involved Service\"] = ServiceNames",
             "querySource": "raw",
             "queryType": "KQL",
             "rawMode": true,
@@ -383,6 +388,6 @@
     "timezone": "browser",
     "title": "ADX Tracing",
     "uid": "",
-    "version": 11,
+    "version": 1,
     "weekStart": ""
   }
