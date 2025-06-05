@@ -1,0 +1,1025 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "Spanmetrics way of demo application view.",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 22,
+    "links": [],
+    "panels": [
+      {
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 2,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 26,
+        "options": {
+          "code": {
+            "language": "plaintext",
+            "showLineNumbers": false,
+            "showMiniMap": false
+          },
+          "content": "This dashboard uses RED metrics generated for all services by the spanmetrics connector configured in the OpenTelemetry Collector.\n<br>\nChart panels may require 5 minutes after the Demo is started before rendering data.",
+          "mode": "html"
+        },
+        "pluginVersion": "11.4.0",
+        "title": "",
+        "type": "text"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 2
+        },
+        "id": 24,
+        "panels": [],
+        "title": "Service Level - Throughput and Latencies",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-BlYlRd"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "blue",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 2
+                },
+                {
+                  "color": "#EAB839",
+                  "value": 64
+                },
+                {
+                  "color": "orange",
+                  "value": 128
+                },
+                {
+                  "color": "red",
+                  "value": 256
+                }
+              ]
+            },
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 20,
+          "w": 12,
+          "x": 0,
+          "y": 3
+        },
+        "id": 2,
+        "interval": "5m",
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "OBS360DataSource"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"traces.span.metrics.duration_bucket\"\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize avg(MetricValue) by bin(Timestamp, 1m), ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Top 3x3 - Service Latency - quantile95",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-BlYlRd"
+            },
+            "decimals": 2,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "super-light-blue",
+                  "value": 1
+                },
+                {
+                  "color": "#EAB839",
+                  "value": 2
+                },
+                {
+                  "color": "red",
+                  "value": 10
+                }
+              ]
+            },
+            "unit": "reqps"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 12,
+          "x": 12,
+          "y": 3
+        },
+        "id": 4,
+        "interval": "5m",
+        "options": {
+          "displayMode": "lcd",
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 10,
+          "minVizWidth": 0,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "mean"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "text": {},
+          "valueMode": "color"
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "OBS360DataSource"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"traces.span.metrics.calls\"\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize avg(MetricValue) by bin(Timestamp, 1m), ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Top 7 Services Mean Rate over Range",
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-reds"
+            },
+            "decimals": 4,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "#EAB839",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 15
+                }
+              ]
+            },
+            "unit": "reqps"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "id": 15,
+        "interval": "5m",
+        "options": {
+          "displayMode": "lcd",
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 10,
+          "minVizWidth": 0,
+          "namePlacement": "auto",
+          "orientation": "vertical",
+          "reduceOptions": {
+            "calcs": [
+              "mean"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "text": {},
+          "valueMode": "color"
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "OBS360DataSource"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"traces.span.metrics.calls\"\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize avg(MetricValue) by bin(Timestamp, 1m), ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Top 7 Services Mean ERROR Rate over Range",
+        "type": "bargauge"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 23
+        },
+        "id": 14,
+        "panels": [],
+        "title": "span_names Level - Throughput",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "decimals": 2,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "reqps"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "bRate"
+              },
+              "properties": [
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "lcd",
+                    "type": "gauge"
+                  }
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "continuous-BlYlRd"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "eRate"
+              },
+              "properties": [
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "lcd",
+                    "type": "gauge"
+                  }
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "continuous-RdYlGr"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Error Rate"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 663
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Rate"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 667
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Service"
+              },
+              "properties": [
+                {
+                  "id": "custom.width"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 11,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        },
+        "id": 22,
+        "interval": "5m",
+        "options": {
+          "cellHeight": "sm",
+          "footer": {
+            "countRows": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": []
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "OBS360DataSource"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"traces.span.metrics.calls\"\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize avg(MetricValue) by bin(Timestamp, 1m), ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Top 7 span_names and Errors  (APM Table)",
+        "transformations": [
+          {
+            "id": "seriesToColumns",
+            "options": {
+              "byField": "span_name"
+            }
+          },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time 1": true,
+                "Time 2": true
+              },
+              "indexByName": {},
+              "renameByName": {
+                "Value #Error Rate": "Error Rate",
+                "Value #Rate": "Rate",
+                "service_name 1": "Rate in Service",
+                "service_name 2": "Error Rate in Service"
+              }
+            }
+          },
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "bRate",
+              "mode": "reduceRow",
+              "reduce": {
+                "include": [
+                  "Rate"
+                ],
+                "reducer": "sum"
+              }
+            }
+          },
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "eRate",
+              "mode": "reduceRow",
+              "reduce": {
+                "include": [
+                  "Error Rate"
+                ],
+                "reducer": "sum"
+              }
+            }
+          },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Error Rate": true,
+                "Rate": true,
+                "bRate": false
+              },
+              "indexByName": {
+                "Error Rate": 4,
+                "Error Rate in Service": 6,
+                "Rate": 1,
+                "Rate in Service": 5,
+                "bRate": 2,
+                "eRate": 3,
+                "span_name": 0
+              },
+              "renameByName": {
+                "Rate in Service": "Service",
+                "bRate": "Rate",
+                "eRate": "Error Rate",
+                "span_name": "span_name Name"
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "desc": true,
+                  "field": "Rate"
+                }
+              ]
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 35
+        },
+        "id": 20,
+        "panels": [],
+        "title": "span_name Level - Latencies",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-BlYlRd"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "blue",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 2
+                },
+                {
+                  "color": "#EAB839",
+                  "value": 64
+                },
+                {
+                  "color": "orange",
+                  "value": 128
+                },
+                {
+                  "color": "red",
+                  "value": 256
+                }
+              ]
+            },
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 12,
+          "x": 0,
+          "y": 36
+        },
+        "id": 25,
+        "interval": "5m",
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "OBS360DataSource"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"traces.span.metrics.duration_bucket\"\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize avg(MetricValue) by bin(Timestamp, 1m), ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Top 3x3 - span_name Latency - quantile95",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-BlYlRd"
+            },
+            "decimals": 2,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 12,
+          "x": 12,
+          "y": 36
+        },
+        "id": 10,
+        "interval": "5m",
+        "options": {
+          "displayMode": "lcd",
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 10,
+          "minVizWidth": 0,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "mean"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "OBS360DataSource"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| where MetricName == \"traces.span.metrics.duration_count\"\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize avg(MetricValue) by bin(Timestamp, 1m), ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Top 7 Highest Endpoint Latencies  Mean Over Range ",
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "fillOpacity": 80,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineWidth": 1,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 14,
+          "w": 24,
+          "x": 0,
+          "y": 49
+        },
+        "id": 27,
+        "options": {
+          "barRadius": 0,
+          "barWidth": 0.97,
+          "fullHighlight": false,
+          "groupWidth": 0.7,
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "showValue": "auto",
+          "stacking": "none",
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          },
+          "xTickLabelRotation": 0,
+          "xTickLabelSpacing": 0
+        },
+        "pluginVersion": "11.4.0",
+        "targets": [
+          {
+            "OpenAI": false,
+            "database": "openteldb",
+            "datasource": {
+              "type": "grafana-azure-data-explorer-datasource",
+              "uid": "OBS360DataSource"
+            },
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| extend SpanName = tostring(SpanName)\r\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\r\n| where ServiceName == \"${service}\"\r\n| summarize AvgLatencyMs = avg(DurationMs) by SpanName\r\n| top 7 by AvgLatencyMs desc",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "refId": "A",
+            "resultFormat": "table"
+          }
+        ],
+        "title": "Top 7 Latencies Over Range ",
+        "type": "barchart"
+      }
+    ],
+    "preload": false,
+    "refresh": "5m",
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "allValue": ".*",
+          "current": {
+            "text": "accounting",
+            "value": "accounting"
+          },
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "definition": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| where ServiceName in ('accounting','ad', 'cart', 'checkout', 'currency', 'email', 'flagd', 'fraud-detection', 'frontend', 'frontend-proxy', 'frontend-web', 'image-provider', 'load-generator', 'payment', 'quote', 'recommendation', 'shipping')\r\n| project ServiceName",
+          "includeAll": false,
+          "name": "service",
+          "options": [],
+          "query": {
+            "OpenAI": false,
+            "clusterUri": "",
+            "database": "openteldb",
+            "expression": {
+              "groupBy": {
+                "expressions": [],
+                "type": "and"
+              },
+              "reduce": {
+                "expressions": [],
+                "type": "and"
+              },
+              "where": {
+                "expressions": [],
+                "type": "and"
+              }
+            },
+            "pluginVersion": "6.0.1",
+            "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| where ServiceName in ('accounting','ad', 'cart', 'checkout', 'currency', 'email', 'flagd', 'fraud-detection', 'frontend', 'frontend-proxy', 'frontend-web', 'image-provider', 'load-generator', 'payment', 'quote', 'recommendation', 'shipping')\r\n| project ServiceName",
+            "querySource": "raw",
+            "queryType": "KQL",
+            "rawMode": true,
+            "resultFormat": "table"
+          },
+          "refresh": 2,
+          "regex": "",
+          "sort": 1,
+          "type": "query"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Spanmetrics Demo Dashboard",
+    "uid": "",
+    "version": 6,
+    "weekStart": ""
+  }

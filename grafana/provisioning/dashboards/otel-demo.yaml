@@ -4,11 +4,11 @@
 
 apiVersion: 1
 providers:
-  - name: 'OSS Dashboards'
+  - name: 'OTEL Demo Dashboards'
     orgId: 1
-    folder: 'oss'
+    folder: 'otel_demo'
     type: file
     disableDeletion: true
     editable: true
     options:
-      path: /etc/grafana/provisioning/dashboards/oss_dashboards
+      path: /etc/grafana/provisioning/dashboards/otel_demo
