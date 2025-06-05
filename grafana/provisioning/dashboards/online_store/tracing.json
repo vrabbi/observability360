@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 13,
+  "id": 14,
   "links": [],
   "panels": [
     {
@@ -187,7 +187,10 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "text": "Azure Data Explorer",
+          "value": "OBS360DataSource"
+        },
         "label": "ADX Data Source",
         "name": "adx",
         "options": [],
@@ -197,7 +200,10 @@
         "type": "datasource"
       },
       {
-        "current": {},
+        "current": {
+          "text": "Jaeger",
+          "value": "EbPG8fYoz"
+        },
         "label": "Jaeger Data Source",
         "name": "jaeger",
         "options": [],
@@ -207,12 +213,15 @@
         "type": "datasource"
       },
       {
-        "current": {},
+        "current": {
+          "text": "Order UI",
+          "value": "Order UI"
+        },
         "datasource": {
           "type": "grafana-azure-data-explorer-datasource",
           "uid": "${adx}"
         },
-        "definition": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
+        "definition": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\r\n| summarize count()by ServiceName\r\n| project ServiceName",
         "label": "Service",
         "name": "service",
         "options": [],
@@ -235,7 +244,7 @@
             }
           },
           "pluginVersion": "6.0.1",
-          "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| summarize count()by ServiceName\r\n| project ServiceName",
+          "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\r\n| summarize count()by ServiceName\r\n| project ServiceName",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -246,7 +255,10 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "text": "a98cb4f9f9ad666fdd9268c973775412",
+          "value": "a98cb4f9f9ad666fdd9268c973775412"
+        },
         "datasource": {
           "type": "grafana-azure-data-explorer-datasource",
           "uid": "${adx}"
@@ -287,7 +299,7 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},

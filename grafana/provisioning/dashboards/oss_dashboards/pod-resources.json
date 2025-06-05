@@ -1774,7 +1774,10 @@
           "type": "query"
         },
         {
-          "current": {},
+          "current": {
+            "text": "online-store",
+            "value": "online-store"
+          },
           "datasource": {
             "type": "grafana-azure-data-explorer-datasource",
             "uid": "${datasource}"

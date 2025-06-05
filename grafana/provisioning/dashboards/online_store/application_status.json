@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 11,
+  "id": 25,
   "links": [],
   "panels": [
     {
@@ -121,7 +121,7 @@
             }
           },
           "pluginVersion": "6.0.0",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains \"UNIQUE\"\n| where SeverityText == \"ERROR\"\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes[\"service.name\"])\n| extend CodeFilePath = tostring(LogsAttributes[\"code.filepath\"])\n| extend CodeFunction = tostring(LogsAttributes[\"code.function\"])\n| extend CodeLineNumber = tostring(LogsAttributes[\"code.lineno\"])\n| summarize ErrorCount = count() by bin(Timestamp, 1d)\n",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains \"UNIQUE\"\n| where SeverityText == \"ERROR\"\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes[\"service.name\"])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| extend CodeFilePath = tostring(LogsAttributes[\"code.filepath\"])\n| extend CodeFunction = tostring(LogsAttributes[\"code.function\"])\n| extend CodeLineNumber = tostring(LogsAttributes[\"code.lineno\"])\n| summarize ErrorCount = count() by bin(Timestamp, 1d)\n",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -230,7 +230,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'INFO'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| count",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'INFO'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| count",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -322,7 +322,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'WARN'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| count",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'WARN'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| count",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -414,7 +414,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'ERROR'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| count",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'ERROR'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| count",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -548,7 +548,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText != ''\n| where ResourceAttributes != \"{}\"\n| summarize INFO = countif(SeverityText == 'INFO'), WARN = countif(SeverityText == 'WARN'), ERROR = countif(SeverityText == 'ERROR')\n\n",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText != ''\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| where ResourceAttributes != \"{}\"\n| summarize INFO = countif(SeverityText == 'INFO'), WARN = countif(SeverityText == 'WARN'), ERROR = countif(SeverityText == 'ERROR')\n\n",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -660,7 +660,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'INFO'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| order by Timestamp desc\n| project Timestamp, TraceID, SpanID, Body, ServiceName, CodeFilePath, CodeFunction, CodeLineNumber",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'INFO'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| order by Timestamp desc\n| project Timestamp, TraceID, SpanID, Body, ServiceName, CodeFilePath, CodeFunction, CodeLineNumber",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -760,7 +760,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'WARN'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| project Timestamp, TraceID, SpanID, Body, ServiceName, CodeFilePath, CodeFunction, CodeLineNumber",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'WARN'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| project Timestamp, TraceID, SpanID, Body, ServiceName, CodeFilePath, CodeFunction, CodeLineNumber",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -795,8 +795,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -860,7 +859,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'ERROR'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| project Timestamp, TraceID, SpanID, Body, ServiceName, CodeFilePath, CodeFunction, CodeLineNumber",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| where Body !contains (\"UNIQUE\")\n| where SeverityText == 'ERROR'\n| where ResourceAttributes != \"{}\"\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| extend CodeFilePath = tostring(LogsAttributes.['code.filepath'])\n| extend CodeFunction = tostring(LogsAttributes.['code.function'])\n| extend CodeLineNumber = tostring(LogsAttributes.['code.lineno'])\n| project Timestamp, TraceID, SpanID, Body, ServiceName, CodeFilePath, CodeFunction, CodeLineNumber",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -914,8 +913,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -996,8 +994,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1080,8 +1077,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1295,8 +1291,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -1360,7 +1355,7 @@
             }
           },
           "pluginVersion": "5.1.1",
-          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend Latency = EndTime - StartTime\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where not(ServiceName contains \"UI\")\n| summarize arg_max(Latency, *) by TraceID\n| project ServiceName, Latency, SpanID, TraceID\n| sort by Latency desc",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend Latency = EndTime - StartTime\n| extend ServiceName = tostring(ResourceAttributes.['service.name'])\n| where ServiceName in ('Cart Service', 'Order UI', 'Order Service', 'Product Service')\n| where not(ServiceName contains \"UI\")\n| summarize arg_max(Latency, *) by TraceID\n| project ServiceName, Latency, SpanID, TraceID\n| sort by Latency desc",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -1423,8 +1418,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -1542,8 +1536,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -1661,8 +1654,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -1737,13 +1729,13 @@
     "list": []
   },
   "time": {
-    "from": "now-30d",
+    "from": "now-2d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Application Status",
-  "uid": "ael91c6hpb5z4b",
-  "version": 6,
+  "uid": "",
+  "version": 1,
   "weekStart": ""
 }

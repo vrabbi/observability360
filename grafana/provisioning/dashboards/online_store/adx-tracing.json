@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 19,
+  "id": 10,
   "links": [],
   "panels": [
     {
@@ -263,7 +263,7 @@
             }
           },
           "pluginVersion": "6.0.1",
-          "query": "let LogsCombined =\r\n    OTELLogs\r\n    | where $__timeFilter(Timestamp)\r\n    | summarize LogsArray = make_list(\r\n        bag_pack(\r\n            \"timestamp\", tolong(Timestamp),\r\n            \"fields\", bag_pack(\r\n                \"Body\", Body\r\n            )\r\n        )\r\n    ) by TraceID;\r\nOTELTraces\r\n| where $__timeFilter(StartTime)\r\n| where TraceID == '${traceID}'\r\n| lookup LogsCombined on TraceID\r\n| project \r\n    startTime = datetime_diff('millisecond', StartTime, datetime(1970-01-01)),\r\n    itemType = SpanKind,\r\n    serviceName = tostring(ResourceAttributes[\"service.name\"]),\r\n    duration = datetime_diff('millisecond', EndTime, StartTime),\r\n    traceID = TraceID,\r\n    spanID = SpanID,\r\n    parentSpanID = ParentID,\r\n    operationName = SpanName,\r\n    logs = LogsArray,\r\n    serviceTags = ResourceAttributes,\r\n    tags = TraceAttributes\r\n",
+          "query": "OTELTraces\r\n| where $__timeFilter(StartTime)\r\n| where TraceID == '${traceID}'\r\n| project \r\n    startTime = datetime_diff('millisecond', StartTime, datetime(1970-01-01)),\r\n    itemType = SpanKind,\r\n    serviceName = tostring(ResourceAttributes[\"service.name\"]),\r\n    duration = datetime_diff('millisecond', EndTime, StartTime),\r\n    traceID = TraceID,\r\n    spanID = SpanID,\r\n    parentSpanID = ParentID,\r\n    operationName = SpanName,\r\n    logs = dynamic([]),  // <- Empty array to preserve structure\r\n    serviceTags = ResourceAttributes,\r\n    tags = TraceAttributes",
           "querySource": "raw",
           "queryType": "KQL",
           "rawMode": true,
@@ -381,13 +381,13 @@
     ]
   },
   "time": {
-    "from": "now-2d",
+    "from": "now-30d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "ADX Tracing",
   "uid": "",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }
