@@ -63,15 +63,28 @@ grafana_loadbalancer_ip = "<grafana_public_ip>"
 jaeger_loadbalancer_ip = "<jaeger_public_ip>"
 online_store_ui_loadbalancer_ip = "<online_store_ui_public_ip>"
 ```
-### 3. Configure Pixie
-Go to the pixie dashboard and configure the OTEL Plugin based on the docs [here](https://docs.px.dev/reference/plugins/plugin-system/#enabling-a-plugin)
+### 3. eBPF instrumentation with OBI
 
-the otel collector address is: `otel-collector.opentelemetry.svc.cluster.local:4317`
-### 3. Validate functionallity
+Nothing to configure. [OpenTelemetry eBPF Instrumentation](https://opentelemetry.io/docs/zero-code/obi/)
+(OBI, the upstream successor of Grafana Beyla) is deployed by Terraform as a DaemonSet in the `obi`
+namespace and exports straight to `otel-collector.opentelemetry.svc.cluster.local:4317`, so its
+telemetry lands in the same Azure Data Explorer tables as everything else. It provides:
+
+- **Network flow metrics** (`obi.network.flow.bytes`, `obi.network.flow.packets`) for the whole
+  cluster, visualized by the *Network Monitoring - OBI* dashboard. A flow between two nodes is
+  observed by the OBI agent at each end, so cross node traffic is reported once per observing node.
+- **Zero-code application metrics and traces** (HTTP, gRPC, SQL, Redis, Kafka, ...) for the
+  `online-store` and `otel-demo` namespaces. OBI detects processes that already export OTLP
+  themselves and stays out of their way, so the SDK instrumented services are not double counted.
+
+The instrumented namespaces, the exported metric groups and the network attribute set are all
+configured in `IaC/app/obi.tf`.
+
+### 4. Validate functionallity
 
 Navigate to the online store ui and start to play with the application, After that navigate to the grafana instance to see the telemetry visualization (it might take few minutes for the data to arrive).
 
-### 4. Online Store
+### 5. Online Store
 
 Online Store Application is a demo that simulates a complete online store. It functions as a target monitored application, providing essential services such as user management, product management, and order processing. This setup enables you to deploy and evaluate observability tools in a realistic environment.
 
@@ -94,7 +107,7 @@ The online store is composed of several services:
     The online store UI.
     Located in the `online_store/ui` directory.
 
-### 5. Cleaning Up
+### 6. Cleaning Up
 
 To destroy the infrastructure and application, run each time in each directory, first the app directory:
 
@@ -102,7 +115,7 @@ To destroy the infrastructure and application, run each time in each directory, 
 terraform destroy -auto-approve -var-file="../terraform.tfvars"
 ```
 
-### 6. Contact
+### 7. Contact
 
 For any questions or feedback, please open an issue or contact the maintainers:
 
