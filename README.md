@@ -73,6 +73,8 @@ telemetry lands in the same Azure Data Explorer tables as everything else. It pr
 - **Network flow metrics** (`obi.network.flow.bytes`, `obi.network.flow.packets`) for the whole
   cluster, visualized by the *Network Monitoring - OBI* dashboard. A flow between two nodes is
   observed by the OBI agent at each end, so cross node traffic is reported once per observing node.
+- **Pod network errors**, kept from the kubelet metrics the collector already scrapes
+  (`k8s.pod.network.errors`); OBI has no NIC level error or drop counters.
 - **Zero-code application metrics and traces** (HTTP, gRPC, SQL, Redis, Kafka, ...) for the
   `online-store` and `otel-demo` namespaces. OBI detects processes that already export OTLP
   themselves and stays out of their way, so the SDK instrumented services are not double counted.
