@@ -15,23 +15,11 @@
       }
     ]
   },
-  "description": "Pod to pod network flows captured with eBPF by OpenTelemetry eBPF Instrumentation (OBI) and stored in Azure Data Explorer.",
+  "description": "Pod to pod network flows and TCP health captured with eBPF by OpenTelemetry eBPF Instrumentation (OBI) and stored in Azure Data Explorer.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "links": [
-    {
-      "asDropdown": true,
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [
-        "kubernetes-mixin"
-      ],
-      "targetBlank": false,
-      "title": "Kubernetes",
-      "type": "dashboards"
-    }
-  ],
+  "links": [],
   "panels": [
     {
       "datasource": {
@@ -605,6 +593,351 @@
         "type": "grafana-azure-data-explorer-datasource",
         "uid": "${datasource}"
       },
+      "description": "Mean of obi.stat.tcp.rtt over each interval, for connections with ${workload} on either end. RTT is measured from the TCP handshake, so it reflects network latency rather than application latency.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\n| where $__timeFilter(Timestamp)\n| where MetricName in (\"obi.stat.tcp.rtt_sum\", \"obi.stat.tcp.rtt_count\")\n| extend SrcNamespace = tostring(parse_json(MetricAttributes)[\"k8s.src.namespace\"])\n| extend SrcWorkload = tostring(parse_json(MetricAttributes)[\"k8s.src.owner.name\"])\n| extend DstNamespace = tostring(parse_json(MetricAttributes)[\"k8s.dst.namespace\"])\n| extend DstWorkload = tostring(parse_json(MetricAttributes)[\"k8s.dst.owner.name\"])\n| extend NodeID = tostring(parse_json(ResourceAttributes)[\"host.id\"])\n| where (SrcNamespace == \"${namespace}\" and SrcWorkload == \"${workload}\") or (DstNamespace == \"${namespace}\" and DstWorkload == \"${workload}\")\n| extend Edge = strcat(SrcNamespace, \"/\", SrcWorkload, \" -> \", DstNamespace, \"/\", DstWorkload)\n| extend SeriesKey = strcat(MetricName, \"|\", NodeID, \"|\", Edge)\n| summarize Counter = max(MetricValue) by MetricName, SeriesKey, Edge, Bucket = bin(Timestamp, 1m)\n| order by SeriesKey asc, Bucket asc\n| serialize\n| extend PrevKey = prev(SeriesKey), PrevCounter = prev(Counter)\n| where PrevKey == SeriesKey and Counter >= PrevCounter\n| extend Delta = Counter - PrevCounter\n| summarize DurationSum = sumif(Delta, MetricName endswith \"_sum\"), Samples = sumif(Delta, MetricName endswith \"_count\") by Timestamp = Bucket, Edge\n| where Samples > 0\n| project Timestamp, Edge, MeanRoundTripSeconds = DurationSum / Samples\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Mean TCP round trip time for ${workload}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Rate of obi.stat.tcp.retransmits for connections with ${workload} on either end. Sustained retransmits point at packet loss or a saturated path.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "cps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\n| where $__timeFilter(Timestamp)\n| where MetricName == \"obi.stat.tcp.retransmits\"\n| extend SrcNamespace = tostring(parse_json(MetricAttributes)[\"k8s.src.namespace\"])\n| extend SrcWorkload = tostring(parse_json(MetricAttributes)[\"k8s.src.owner.name\"])\n| extend DstNamespace = tostring(parse_json(MetricAttributes)[\"k8s.dst.namespace\"])\n| extend DstWorkload = tostring(parse_json(MetricAttributes)[\"k8s.dst.owner.name\"])\n| extend NodeID = tostring(parse_json(ResourceAttributes)[\"host.id\"])\n| where (SrcNamespace == \"${namespace}\" and SrcWorkload == \"${workload}\") or (DstNamespace == \"${namespace}\" and DstWorkload == \"${workload}\")\n| extend Edge = strcat(SrcNamespace, \"/\", SrcWorkload, \" -> \", DstNamespace, \"/\", DstWorkload)\n| extend SeriesKey = strcat(NodeID, \"|\", Edge)\n| summarize Counter = max(MetricValue) by SeriesKey, Edge, Bucket = bin(Timestamp, 1m)\n| order by SeriesKey asc, Bucket asc\n| serialize\n| extend PrevKey = prev(SeriesKey), PrevCounter = prev(Counter), PrevBucket = prev(Bucket)\n| where PrevKey == SeriesKey and Counter >= PrevCounter\n| extend Seconds = todouble(datetime_diff('second', Bucket, PrevBucket))\n| where Seconds > 0\n| summarize RetransmitsPerSecond = sum((Counter - PrevCounter) / Seconds) by Timestamp = Bucket, Edge\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "TCP retransmits for ${workload}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Rate of obi.stat.tcp.failed.connections for connections with ${workload} on either end: connection attempts that never completed the handshake or were reset.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "cps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 37
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\n| where $__timeFilter(Timestamp)\n| where MetricName == \"obi.stat.tcp.failed.connections\"\n| extend SrcNamespace = tostring(parse_json(MetricAttributes)[\"k8s.src.namespace\"])\n| extend SrcWorkload = tostring(parse_json(MetricAttributes)[\"k8s.src.owner.name\"])\n| extend DstNamespace = tostring(parse_json(MetricAttributes)[\"k8s.dst.namespace\"])\n| extend DstWorkload = tostring(parse_json(MetricAttributes)[\"k8s.dst.owner.name\"])\n| extend NodeID = tostring(parse_json(ResourceAttributes)[\"host.id\"])\n| where (SrcNamespace == \"${namespace}\" and SrcWorkload == \"${workload}\") or (DstNamespace == \"${namespace}\" and DstWorkload == \"${workload}\")\n| extend Edge = strcat(SrcNamespace, \"/\", SrcWorkload, \" -> \", DstNamespace, \"/\", DstWorkload)\n| extend SeriesKey = strcat(NodeID, \"|\", Edge)\n| summarize Counter = max(MetricValue) by SeriesKey, Edge, Bucket = bin(Timestamp, 1m)\n| order by SeriesKey asc, Bucket asc\n| serialize\n| extend PrevKey = prev(SeriesKey), PrevCounter = prev(Counter), PrevBucket = prev(Bucket)\n| where PrevKey == SeriesKey and Counter >= PrevCounter\n| extend Seconds = todouble(datetime_diff('second', Bucket, PrevBucket))\n| where Seconds > 0\n| summarize FailuresPerSecond = sum((Counter - PrevCounter) / Seconds) by Timestamp = Bucket, Edge\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Failed TCP connections for ${workload}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
       "description": "Pod network error rate as reported by the kubelet (k8s.pod.network.errors), summed over network interfaces. OBI does not expose NIC level error or drop counters.",
       "fieldConfig": {
         "defaults": {
@@ -655,17 +988,17 @@
               }
             ]
           },
-          "unit": "errors/sec"
+          "unit": "cps"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 28
+        "w": 12,
+        "x": 12,
+        "y": 37
       },
-      "id": 6,
+      "id": 9,
       "options": {
         "legend": {
           "calcs": [

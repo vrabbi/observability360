@@ -71,16 +71,50 @@ namespace and exports straight to `otel-collector.opentelemetry.svc.cluster.loca
 telemetry lands in the same Azure Data Explorer tables as everything else. It provides:
 
 - **Network flow metrics** (`obi.network.flow.bytes`, `obi.network.flow.packets`) for the whole
-  cluster, visualized by the *Network Monitoring - OBI* dashboard. A flow between two nodes is
-  observed by the OBI agent at each end, so cross node traffic is reported once per observing node.
-- **Pod network errors**, kept from the kubelet metrics the collector already scrapes
+  cluster. A flow between two nodes is observed by the OBI agent at each end, so cross node
+  traffic is reported once per observing node.
+- **TCP health statistics** (`obi.stat.tcp.rtt`, `obi.stat.tcp.retransmits`,
+  `obi.stat.tcp.failed.connections`) for the whole cluster. `stats_tcp_io` is deliberately left
+  off: it fires on every send and receive, unlike the others which fire on close, failure or
+  retransmit. Pod network *errors* come from the kubelet metrics the collector already scrapes
   (`k8s.pod.network.errors`); OBI has no NIC level error or drop counters.
+- **Service graph metrics** (`traces_service_graph_request_*`), a call graph derived from the
+  traffic on the wire. OBI counts an edge at the server end, or at the client end when the server
+  itself is not instrumented.
 - **Zero-code application metrics and traces** (HTTP, gRPC, SQL, Redis, Kafka, ...) for the
   `online-store` and `otel-demo` namespaces. OBI detects processes that already export OTLP
   themselves and stays out of their way, so the SDK instrumented services are not double counted.
+- **HTTP request headers on server spans**, see [Unit economics](#unit-economics) below.
 
-The instrumented namespaces, the exported metric groups and the network attribute set are all
-configured in `IaC/app/obi.tf`.
+Dashboards: *Network Monitoring - OBI* and *Service Map - OBI* in the `kubernetes_service` folder.
+The instrumented namespaces, the exported metric groups and the attribute sets are all configured
+in `IaC/app/obi.tf`.
+
+#### Unit economics
+
+OBI can copy chosen HTTP request headers onto every server span it produces. The headers arrive in
+ADX as `http.request.header.<name>` inside the `TraceAttributes` column of the `OTELTraces` table,
+which makes per-request cost attribution a plain KQL group-by. The *Unit Economics - request
+attribution* dashboard uses this to split requests, service seconds and payload bytes across the
+values of one header.
+
+Which headers are captured is set by the `obi_capture_request_headers` Terraform variable
+(default `x-tenant-id`, `x-customer-id`, `x-org-id`). The capture policy excludes everything by
+default, so no other header and no request or response body is ever read. Set the variable to `[]`
+to turn the feature off.
+
+Caveats worth knowing before relying on this:
+
+- **Traces only.** OBI attaches captured headers to spans, not to metrics, so attribution costs one
+  ADX row per request. Budget for that, or sample.
+- **Capture window.** OBI only sees the first `obi_http_capture_bytes` (default 8 KiB) of each
+  request, so a header pushed past that point by large cookies is missed.
+- **TLS.** OBI reads plaintext, plus TLS for Go and OpenSSL based processes. Traffic encrypted by
+  another library is only visible at the network level.
+- **Service seconds, not currency.** The dashboard's allocation key is summed span duration. Turning
+  that into money still needs a rate per service-second that you supply.
+- **The header has to exist.** Nothing propagates it for you; the *Attribution coverage* stat shows
+  what fraction of load actually carries one.
 
 ### 4. Validate functionallity
 

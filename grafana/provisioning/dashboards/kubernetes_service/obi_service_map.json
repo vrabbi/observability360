@@ -1,0 +1,535 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Service to service call graph derived by OpenTelemetry eBPF Instrumentation (OBI) from the traffic it sees on the wire, without any application change.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Every client to server edge OBI observed in the selected time range. Requests and errors are the deltas of traces_service_graph_request_total and traces_service_graph_request_failed_total; the mean latency is the server side histogram sum divided by its count.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Requests"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ErrorRatio"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MeanLatencySeconds"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Requests"
+          }
+        ]
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let edgeTotal = (metric:string) {\n    OTELMetrics\n    | where $__timeFilter(Timestamp)\n    | where MetricName == metric\n| extend Client = tostring(parse_json(MetricAttributes)[\"client\"])\n| extend Server = tostring(parse_json(MetricAttributes)[\"server\"])\n| extend ClientNamespace = tostring(parse_json(MetricAttributes)[\"client_namespace\"])\n| extend ServerNamespace = tostring(parse_json(MetricAttributes)[\"server_namespace\"])\n| extend ConnectionType = tostring(parse_json(MetricAttributes)[\"connection_type\"])\n| extend Reporter = tostring(parse_json(ResourceAttributes)[\"service.instance.id\"])\n| extend Edge = strcat(ClientNamespace, \"/\", Client, \" -> \", ServerNamespace, \"/\", Server)\n| extend SeriesKey = strcat(Reporter, \"|\", Edge, \"|\", ConnectionType)\n    | summarize Counter = max(MetricValue) by SeriesKey, Edge, Bucket = bin(Timestamp, 1m)\n    | order by SeriesKey asc, Bucket asc\n    | serialize\n    | extend PrevKey = prev(SeriesKey), PrevCounter = prev(Counter)\n    | where PrevKey == SeriesKey and Counter >= PrevCounter\n    | summarize Value = sum(Counter - PrevCounter) by Edge\n};\nlet requests = edgeTotal(\"traces_service_graph_request_total\") | project Edge, Requests = Value;\nlet failures = edgeTotal(\"traces_service_graph_request_failed_total\") | project Edge, Errors = Value;\nlet latencySum = edgeTotal(\"traces_service_graph_request_server_sum\") | project Edge, DurationSum = Value;\nlet latencyCount = edgeTotal(\"traces_service_graph_request_server_count\") | project Edge, Samples = Value;\nrequests\n| join kind=leftouter failures on Edge\n| join kind=leftouter latencySum on Edge\n| join kind=leftouter latencyCount on Edge\n| extend Errors = coalesce(Errors, 0.0)\n| extend ErrorRatio = iff(Requests > 0, Errors / Requests, real(null))\n| extend MeanLatencySeconds = iff(coalesce(Samples, 0.0) > 0, DurationSum / Samples, real(null))\n| project Edge, Requests, Errors, ErrorRatio, MeanLatencySeconds\n| where Requests > 0\n| order by Requests desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Service edges",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Rate of traces_service_graph_request_total. OBI counts an edge on the server side, or on the client side when the server itself is not instrumented.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\n| where $__timeFilter(Timestamp)\n| where MetricName == \"traces_service_graph_request_total\"\n| extend Client = tostring(parse_json(MetricAttributes)[\"client\"])\n| extend Server = tostring(parse_json(MetricAttributes)[\"server\"])\n| extend ClientNamespace = tostring(parse_json(MetricAttributes)[\"client_namespace\"])\n| extend ServerNamespace = tostring(parse_json(MetricAttributes)[\"server_namespace\"])\n| extend ConnectionType = tostring(parse_json(MetricAttributes)[\"connection_type\"])\n| extend Reporter = tostring(parse_json(ResourceAttributes)[\"service.instance.id\"])\n| extend Edge = strcat(ClientNamespace, \"/\", Client, \" -> \", ServerNamespace, \"/\", Server)\n| extend SeriesKey = strcat(Reporter, \"|\", Edge, \"|\", ConnectionType)\n| summarize Counter = max(MetricValue) by SeriesKey, Edge, Bucket = bin(Timestamp, 1m)\n| order by SeriesKey asc, Bucket asc\n| serialize\n| extend PrevKey = prev(SeriesKey), PrevCounter = prev(Counter), PrevBucket = prev(Bucket)\n| where PrevKey == SeriesKey and Counter >= PrevCounter\n| extend Seconds = todouble(datetime_diff('second', Bucket, PrevBucket))\n| where Seconds > 0\n| summarize RequestsPerSecond = sum((Counter - PrevCounter) / Seconds) by Timestamp = Bucket, Edge\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Request rate by edge",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Rate of traces_service_graph_request_failed_total: requests OBI classified as failed, for example an HTTP 5xx or a non-OK gRPC status.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\n| where $__timeFilter(Timestamp)\n| where MetricName == \"traces_service_graph_request_failed_total\"\n| extend Client = tostring(parse_json(MetricAttributes)[\"client\"])\n| extend Server = tostring(parse_json(MetricAttributes)[\"server\"])\n| extend ClientNamespace = tostring(parse_json(MetricAttributes)[\"client_namespace\"])\n| extend ServerNamespace = tostring(parse_json(MetricAttributes)[\"server_namespace\"])\n| extend ConnectionType = tostring(parse_json(MetricAttributes)[\"connection_type\"])\n| extend Reporter = tostring(parse_json(ResourceAttributes)[\"service.instance.id\"])\n| extend Edge = strcat(ClientNamespace, \"/\", Client, \" -> \", ServerNamespace, \"/\", Server)\n| extend SeriesKey = strcat(Reporter, \"|\", Edge, \"|\", ConnectionType)\n| summarize Counter = max(MetricValue) by SeriesKey, Edge, Bucket = bin(Timestamp, 1m)\n| order by SeriesKey asc, Bucket asc\n| serialize\n| extend PrevKey = prev(SeriesKey), PrevCounter = prev(Counter), PrevBucket = prev(Bucket)\n| where PrevKey == SeriesKey and Counter >= PrevCounter\n| extend Seconds = todouble(datetime_diff('second', Bucket, PrevBucket))\n| where Seconds > 0\n| summarize ErrorsPerSecond = sum((Counter - PrevCounter) / Seconds) by Timestamp = Bucket, Edge\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Error rate by edge",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Mean of traces_service_graph_request_server over each interval, measured by OBI at the server end of the edge.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\n| where $__timeFilter(Timestamp)\n| where MetricName in (\"traces_service_graph_request_server_sum\", \"traces_service_graph_request_server_count\")\n| extend Client = tostring(parse_json(MetricAttributes)[\"client\"])\n| extend Server = tostring(parse_json(MetricAttributes)[\"server\"])\n| extend ClientNamespace = tostring(parse_json(MetricAttributes)[\"client_namespace\"])\n| extend ServerNamespace = tostring(parse_json(MetricAttributes)[\"server_namespace\"])\n| extend ConnectionType = tostring(parse_json(MetricAttributes)[\"connection_type\"])\n| extend Reporter = tostring(parse_json(ResourceAttributes)[\"service.instance.id\"])\n| extend Edge = strcat(ClientNamespace, \"/\", Client, \" -> \", ServerNamespace, \"/\", Server)\n| extend SeriesKey = strcat(Reporter, \"|\", Edge, \"|\", ConnectionType)\n| extend SeriesKey = strcat(MetricName, \"|\", SeriesKey)\n| summarize Counter = max(MetricValue) by MetricName, SeriesKey, Edge, Bucket = bin(Timestamp, 1m)\n| order by SeriesKey asc, Bucket asc\n| serialize\n| extend PrevKey = prev(SeriesKey), PrevCounter = prev(Counter)\n| where PrevKey == SeriesKey and Counter >= PrevCounter\n| extend Delta = Counter - PrevCounter\n| summarize DurationSum = sumif(Delta, MetricName endswith \"_sum\"), Requests = sumif(Delta, MetricName endswith \"_count\") by Timestamp = Bucket, Edge\n| where Requests > 0\n| project Timestamp, Edge, MeanLatencySeconds = DurationSum / Requests\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Mean server side latency by edge",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "1m",
+  "schemaVersion": 40,
+  "tags": [
+    "obi",
+    "service-graph"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "Azure Data Explorer",
+          "value": "OBS360DataSource"
+        },
+        "label": "Data source",
+        "name": "datasource",
+        "options": [],
+        "query": "grafana-azure-data-explorer-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Service Map - OBI",
+  "uid": "obi-service-map",
+  "version": 1,
+  "weekStart": ""
+}

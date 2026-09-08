@@ -1,0 +1,732 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Attributes served requests, service time and payload bytes to the value of an HTTP request header that OpenTelemetry eBPF Instrumentation (OBI) captures on every server span. Use it to split infrastructure cost across tenants, customers or product areas without touching application code.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Share of server spans in range that carry a value for the ${header} header. Anything below 100% means part of the load cannot be attributed and shows up as \"(unattributed)\".",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.75
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let spans = OTELTraces\n| where $__timeFilter(StartTime)\n| where SpanKind == \"SPAN_KIND_SERVER\"\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where \"${service}\" == \"*\" or ServiceName == \"${service}\"\n| extend Tenant = tostring(parse_json(TraceAttributes)[\"http.request.header.${header}\"][0])\n| extend Tenant = iff(isempty(Tenant), \"(unattributed)\", Tenant)\n| extend ServiceSeconds = todouble(datetime_diff('microsecond', EndTime, StartTime)) / 1000000.0\n| extend BytesIn = coalesce(todouble(parse_json(TraceAttributes)[\"http.request.body.size\"]), 0.0)\n| extend BytesOut = coalesce(todouble(parse_json(TraceAttributes)[\"http.response.body.size\"]), 0.0)\n| extend IsError = tolower(SpanStatus) == \"status_code_error\";\nspans\n| summarize Attributed = countif(Tenant != \"(unattributed)\"), Total = count()\n| project AttributionCoverage = iff(Total > 0, todouble(Attributed) / Total, real(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Attribution coverage",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Service seconds is the summed wall clock duration of the server spans and is the most usable allocation key: it approximates the share of compute each tenant consumed. Bytes in/out come from the OBI span attributes http.request.body.size and http.response.body.size.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Requests"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RequestShare"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ServiceSeconds"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ServiceSecondsShare"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "BytesIn"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "BytesOut"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ErrorRatio"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "ServiceSeconds"
+          }
+        ]
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let spans = OTELTraces\n| where $__timeFilter(StartTime)\n| where SpanKind == \"SPAN_KIND_SERVER\"\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where \"${service}\" == \"*\" or ServiceName == \"${service}\"\n| extend Tenant = tostring(parse_json(TraceAttributes)[\"http.request.header.${header}\"][0])\n| extend Tenant = iff(isempty(Tenant), \"(unattributed)\", Tenant)\n| extend ServiceSeconds = todouble(datetime_diff('microsecond', EndTime, StartTime)) / 1000000.0\n| extend BytesIn = coalesce(todouble(parse_json(TraceAttributes)[\"http.request.body.size\"]), 0.0)\n| extend BytesOut = coalesce(todouble(parse_json(TraceAttributes)[\"http.response.body.size\"]), 0.0)\n| extend IsError = tolower(SpanStatus) == \"status_code_error\";\nlet totalServiceSeconds = toscalar(spans | summarize sum(ServiceSeconds));\nlet totalRequests = toscalar(spans | summarize count());\nspans\n| summarize\n    Requests = count(),\n    Errors = countif(IsError),\n    ServiceSeconds = sum(ServiceSeconds),\n    BytesIn = sum(BytesIn),\n    BytesOut = sum(BytesOut)\n  by Tenant\n| extend RequestShare = iff(totalRequests > 0, todouble(Requests) / totalRequests, real(null))\n| extend ServiceSecondsShare = iff(totalServiceSeconds > 0, ServiceSeconds / totalServiceSeconds, real(null))\n| extend ErrorRatio = iff(Requests > 0, todouble(Errors) / Requests, real(null))\n| project Tenant, Requests, RequestShare, ServiceSeconds, ServiceSecondsShare, BytesIn, BytesOut, Errors, ErrorRatio\n| order by ServiceSeconds desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Cost attribution by ${header}",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Server side request rate attributed to each header value.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let spans = OTELTraces\n| where $__timeFilter(StartTime)\n| where SpanKind == \"SPAN_KIND_SERVER\"\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where \"${service}\" == \"*\" or ServiceName == \"${service}\"\n| extend Tenant = tostring(parse_json(TraceAttributes)[\"http.request.header.${header}\"][0])\n| extend Tenant = iff(isempty(Tenant), \"(unattributed)\", Tenant)\n| extend ServiceSeconds = todouble(datetime_diff('microsecond', EndTime, StartTime)) / 1000000.0\n| extend BytesIn = coalesce(todouble(parse_json(TraceAttributes)[\"http.request.body.size\"]), 0.0)\n| extend BytesOut = coalesce(todouble(parse_json(TraceAttributes)[\"http.response.body.size\"]), 0.0)\n| extend IsError = tolower(SpanStatus) == \"status_code_error\";\nspans\n| summarize Requests = count() by Bucket = bin(StartTime, 1m), Tenant\n| project Timestamp = Bucket, Tenant, RequestsPerSecond = Requests / 60.0\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Requests per second by ${header}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Summed span duration per wall clock second. A value of 1 means one request was in flight on average for that tenant, which maps directly onto consumed compute.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let spans = OTELTraces\n| where $__timeFilter(StartTime)\n| where SpanKind == \"SPAN_KIND_SERVER\"\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where \"${service}\" == \"*\" or ServiceName == \"${service}\"\n| extend Tenant = tostring(parse_json(TraceAttributes)[\"http.request.header.${header}\"][0])\n| extend Tenant = iff(isempty(Tenant), \"(unattributed)\", Tenant)\n| extend ServiceSeconds = todouble(datetime_diff('microsecond', EndTime, StartTime)) / 1000000.0\n| extend BytesIn = coalesce(todouble(parse_json(TraceAttributes)[\"http.request.body.size\"]), 0.0)\n| extend BytesOut = coalesce(todouble(parse_json(TraceAttributes)[\"http.response.body.size\"]), 0.0)\n| extend IsError = tolower(SpanStatus) == \"status_code_error\";\nspans\n| summarize Seconds = sum(ServiceSeconds) by Bucket = bin(StartTime, 1m), Tenant\n| project Timestamp = Bucket, Tenant, ServiceSecondsPerSecond = Seconds / 60.0\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Service seconds per second by ${header}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${datasource}"
+      },
+      "description": "Where each tenant's service time actually goes. Routes come from the http.route span attribute when OBI could derive one, otherwise from the span name.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Requests"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ServiceSeconds"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "ServiceSeconds"
+          }
+        ]
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${datasource}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let spans = OTELTraces\n| where $__timeFilter(StartTime)\n| where SpanKind == \"SPAN_KIND_SERVER\"\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where \"${service}\" == \"*\" or ServiceName == \"${service}\"\n| extend Tenant = tostring(parse_json(TraceAttributes)[\"http.request.header.${header}\"][0])\n| extend Tenant = iff(isempty(Tenant), \"(unattributed)\", Tenant)\n| extend ServiceSeconds = todouble(datetime_diff('microsecond', EndTime, StartTime)) / 1000000.0\n| extend BytesIn = coalesce(todouble(parse_json(TraceAttributes)[\"http.request.body.size\"]), 0.0)\n| extend BytesOut = coalesce(todouble(parse_json(TraceAttributes)[\"http.response.body.size\"]), 0.0)\n| extend IsError = tolower(SpanStatus) == \"status_code_error\";\nspans\n| extend Route = coalesce(tostring(parse_json(TraceAttributes)[\"http.route\"]), SpanName)\n| summarize Requests = count(), ServiceSeconds = sum(ServiceSeconds) by Tenant, ServiceName, Route\n| order by ServiceSeconds desc\n| take 50",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Top routes by ${header}",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "1m",
+  "schemaVersion": 40,
+  "tags": [
+    "obi",
+    "unit-economics",
+    "finops"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "Azure Data Explorer",
+          "value": "OBS360DataSource"
+        },
+        "label": "Data source",
+        "name": "datasource",
+        "options": [],
+        "query": "grafana-azure-data-explorer-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "x-tenant-id",
+          "value": "x-tenant-id"
+        },
+        "label": "attribution header",
+        "name": "header",
+        "options": [],
+        "query": "x-tenant-id,x-customer-id,x-org-id",
+        "type": "custom",
+        "description": "Must be one of the headers listed in the obi_capture_request_headers Terraform variable, lowercased. Anything else yields no data."
+      },
+      {
+        "current": {
+          "text": "All",
+          "value": "*"
+        },
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "${datasource}"
+        },
+        "definition": "OTELTraces\n| where $__timeFilter(StartTime)\n| where SpanKind == \"SPAN_KIND_SERVER\"\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where isnotempty(ServiceName)\n| distinct ServiceName",
+        "label": "service",
+        "name": "service",
+        "options": [],
+        "query": {
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| where SpanKind == \"SPAN_KIND_SERVER\"\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where isnotempty(ServiceName)\n| distinct ServiceName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "adx-service",
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "type": "query",
+        "includeAll": true,
+        "allValue": "*"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Unit Economics - request attribution",
+  "uid": "obi-unit-economics",
+  "version": 1,
+  "weekStart": ""
+}
