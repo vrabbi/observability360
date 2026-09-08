@@ -17,6 +17,10 @@ from opentelemetry._logs import set_logger_provider
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from online_store.otel.tenant import (
+    install_requests_propagation,
+    server_request_hook,
+)
 
 
 
@@ -72,10 +76,15 @@ def configure_telemetry(app, service_name: str, service_version: str, deployment
     
     # Auto-instrumentation
     if app:
-        FastAPIInstrumentor.instrument_app(app)
+        # The hook tags each server span with the tenant the request belongs to and
+        # makes that tenant available to anything the request handler calls.
+        FastAPIInstrumentor.instrument_app(app, server_request_hook=server_request_hook)
     SQLite3Instrumentor().instrument()
     RequestsInstrumentor().instrument()
     LoggingInstrumentor().instrument(set_logging_format=True)
+
+    # Carries the tenant header on to the next service on every outgoing call.
+    install_requests_propagation()
 
     # Use a combined name for meter and tracer instead of __name__
     identifier = f"{service_name}-{service_version}"

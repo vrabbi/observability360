@@ -84,7 +84,8 @@ telemetry lands in the same Azure Data Explorer tables as everything else. It pr
 - **Zero-code application metrics and traces** (HTTP, gRPC, SQL, Redis, Kafka, ...) for the
   `online-store` and `otel-demo` namespaces. OBI detects processes that already export OTLP
   themselves and stays out of their way, so the SDK instrumented services are not double counted.
-- **HTTP request headers on server spans**, see [Unit economics](#unit-economics) below.
+- **HTTP request headers on server spans**, for services OBI instruments. See
+  [Unit economics](#unit-economics) below.
 
 Dashboards: *Network Monitoring - OBI* and *Service Map - OBI* in the `kubernetes_service` folder.
 The instrumented namespaces, the exported metric groups and the attribute sets are all configured
@@ -92,29 +93,49 @@ in `IaC/app/obi.tf`.
 
 #### Unit economics
 
-OBI can copy chosen HTTP request headers onto every server span it produces. The headers arrive in
-ADX as `http.request.header.<name>` inside the `TraceAttributes` column of the `OTELTraces` table,
-which makes per-request cost attribution a plain KQL group-by. The *Unit Economics - request
-attribution* dashboard uses this to split requests, service seconds and payload bytes across the
-values of one header.
+Every request the online store serves is attributed to a tenant, so infrastructure cost can be
+split across tenants, customers or product areas. The *Unit Economics - request attribution*
+dashboard groups requests, service seconds and payload bytes by that tenant.
 
-Which headers are captured is set by the `obi_capture_request_headers` Terraform variable
-(default `x-tenant-id`, `x-customer-id`, `x-org-id`). The capture policy excludes everything by
-default, so no other header and no request or response body is ever read. Set the variable to `[]`
-to turn the feature off.
+Pick a tenant in the online store UI sidebar ("Acting as tenant"), click around, and the split
+moves. The tenant travels in an HTTP header (`x-tenant-id` by default) that the UI attaches to
+every call; each service reads it off the incoming request and puts it back on every request it
+makes onwards, so a whole call chain is attributed to the tenant that started it. The demo tenants
+are set by the `DEMO_TENANTS` environment variable and the header name by `TENANT_HEADER`, both in
+`online_store/otel/tenant.py`.
+
+**Two paths produce the attribution, and the dashboard reads either one.**
+
+1. **Services you instrument** set the tenant themselves, as the `tenant.id` span attribute. In this
+   repository that is done centrally in `online_store/otel/tenant.py`, wired into every service by
+   `configure_telemetry`, so no individual service or call site had to change.
+2. **Services nobody instrumented** are covered by OBI, which copies chosen request headers onto the
+   spans it generates, as `http.request.header.<name>`.
+
+The second path exists because OBI is the only option when you cannot change the code. It is *not*
+what fires for the online store: OBI deliberately skips processes it detects are already exporting
+OTLP, so that it never emits a second copy of their telemetry, and every service here exports OTLP.
+Header capture is configured and ready for workloads that are not instrumented; to see it drive the
+online store instead, set `discovery.exclude_otel_instrumented_services: false` in `IaC/app/obi.tf`
+and accept the duplicate spans that follow.
+
+Which headers OBI captures is set by the `obi_capture_request_headers` Terraform variable (default
+`x-tenant-id`, `x-customer-id`, `x-org-id`). Its capture policy excludes everything by default, so
+no other header and no request or response body is ever read. Set the variable to `[]` to turn the
+feature off.
 
 Caveats worth knowing before relying on this:
 
-- **Traces only.** OBI attaches captured headers to spans, not to metrics, so attribution costs one
-  ADX row per request. Budget for that, or sample.
-- **Capture window.** OBI only sees the first `obi_http_capture_bytes` (default 8 KiB) of each
-  request, so a header pushed past that point by large cookies is missed.
-- **TLS.** OBI reads plaintext, plus TLS for Go and OpenSSL based processes. Traffic encrypted by
-  another library is only visible at the network level.
+- **Traces only.** The tenant lands on spans, not on metrics, so attribution costs one ADX row per
+  request. Budget for that, or sample.
 - **Service seconds, not currency.** The dashboard's allocation key is summed span duration. Turning
   that into money still needs a rate per service-second that you supply.
-- **The header has to exist.** Nothing propagates it for you; the *Attribution coverage* stat shows
-  what fraction of load actually carries one.
+- **Coverage.** Anything reaching a service without a tenant shows up as `(unattributed)`; the
+  *Attribution coverage* stat shows what fraction of load actually carries one.
+- **OBI capture window.** For path 2, OBI only sees the first `obi_http_capture_bytes` (default
+  8 KiB) of each request, so a header pushed past that point by large cookies is missed.
+- **OBI and TLS.** For path 2, OBI reads plaintext plus TLS for Go and OpenSSL based processes.
+  Traffic encrypted by another library is only visible at the network level.
 
 ### 4. Validate functionallity
 
