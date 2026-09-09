@@ -102,20 +102,21 @@ in `IaC/app/obi.tf`.
 
 #### Unit economics
 
-Every request the online store serves is attributed to a tenant, so infrastructure cost can be
-split across tenants, customers or product areas. The *Unit Economics - request attribution*
-dashboard groups requests, service seconds and payload bytes by that tenant.
+Every request the online store serves is attributed to an org, a tenant and a customer (the
+acting user id), so infrastructure cost can be split across any of those dimensions. The
+*Unit Economics - request attribution* dashboard groups requests, service seconds and payload
+bytes by the header you pick there (`x-org-id`, `x-tenant-id` or `x-customer-id`).
 
-Pick a tenant in the online store UI sidebar ("Acting as tenant"), click around, and the split
-moves. The tenant travels in an HTTP header (`x-tenant-id` by default) that the UI attaches to
-every call; each service reads it off the incoming request and puts it back on every request it
-makes onwards, so a whole call chain is attributed to the tenant that started it. The demo tenants
-are set by the `DEMO_TENANTS` environment variable and the header name by `TENANT_HEADER`, both in
-`online_store/otel/tenant.py`.
+Pick an org, then a tenant under that org, then a user in the online store UI sidebar. Click
+around and the split moves. Those values travel in `x-org-id`, `x-tenant-id` and
+`x-customer-id`; each service reads them off the incoming request and puts them back on every
+request it makes onwards, so a whole call chain stays attributed. Orgs and tenants are set by
+`DEMO_ORGS` (or the older `DEMO_TENANTS` list) in `online_store/otel/tenant.py`. The customer
+value is the selected user's id.
 
 **Two paths produce the attribution, and the dashboard reads either one.**
 
-1. **Services you instrument** set the tenant themselves, as the `tenant.id` span attribute. In this
+1. **Services you instrument** set `org.id`, `tenant.id` and `customer.id` themselves. In this
    repository that is done centrally in `online_store/otel/tenant.py`, wired into every service by
    `configure_telemetry`, so no individual service or call site had to change.
 2. **Services nobody instrumented** are covered by OBI, which copies chosen request headers onto the

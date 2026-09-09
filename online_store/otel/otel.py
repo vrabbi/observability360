@@ -76,14 +76,14 @@ def configure_telemetry(app, service_name: str, service_version: str, deployment
     
     # Auto-instrumentation
     if app:
-        # The hook tags each server span with the tenant the request belongs to and
-        # makes that tenant available to anything the request handler calls.
+        # The hook tags each server span with org / tenant / customer and makes
+        # those values available to anything the request handler calls.
         FastAPIInstrumentor.instrument_app(app, server_request_hook=server_request_hook)
     SQLite3Instrumentor().instrument()
     RequestsInstrumentor().instrument()
     LoggingInstrumentor().instrument(set_logging_format=True)
 
-    # Carries the tenant header on to the next service on every outgoing call.
+    # Carries the attribution headers on to the next service on every outgoing call.
     install_requests_propagation()
 
     # Use a combined name for meter and tracer instead of __name__

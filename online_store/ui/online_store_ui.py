@@ -1,6 +1,7 @@
 # this is central ui for the online store
 import os
 import sys
+import requests
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -12,7 +13,13 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
     
 from online_store.otel.otel import configure_telemetry
-from online_store.otel.tenant import DEMO_TENANTS, set_current_tenant
+from online_store.otel.tenant import (
+    DEMO_ORGS,
+    set_current_customer,
+    set_current_org,
+    set_current_tenant,
+    tenants_for_org,
+)
 from db_init import initialize_db
 from order_ui import run_order_ui
 from cart_ui import run_cart_ui
@@ -87,14 +94,57 @@ st.markdown(svg_logo_centered, unsafe_allow_html=True)
 # ---------------------------------------------------------------------
 # Sidebar Navigation
 # ---------------------------------------------------------------------
-# The selected tenant travels with every request the UI makes, and from there on to
-# every service in the call chain, which is what the "Unit Economics" Grafana
-# dashboard groups by. Set once per rerun, before any service call is made.
-tenant = st.sidebar.selectbox("Acting as tenant", DEMO_TENANTS, index=0)
+# Org, tenant and acting user travel with every request the UI makes, and from
+# there on to every service in the call chain. The Unit Economics Grafana
+# dashboard can group by any of those headers. Set once per rerun, before any
+# other service call is made.
+org_names = list(DEMO_ORGS.keys())
+org = st.sidebar.selectbox("Acting as org", org_names, index=0, key="demo_org")
+set_current_org(org)
+
+org_tenants = tenants_for_org(org)
+if not org_tenants:
+    st.sidebar.warning("No tenants configured for this org.")
+    org_tenants = [""]
+tenant = st.sidebar.selectbox(
+    "Acting as tenant", org_tenants, index=0, key=f"demo_tenant_{org}"
+)
 set_current_tenant(tenant)
+
+
+def _sidebar_users():
+    url = os.environ.get("USER_SERVICE_URL", "http://127.0.0.1:5000")
+    try:
+        response = requests.get(f"{url}/users", timeout=5)
+        response.raise_for_status()
+        users = response.json()
+        if users:
+            return users
+    except Exception as exc:
+        logger.warning("Could not load users for the customer selector: %s", exc)
+    return [
+        {"id": 1, "firstName": "Tony", "lastName": "Stark", "userAlias": "ironman"},
+        {"id": 2, "firstName": "Steve", "lastName": "Rogers", "userAlias": "capamerica"},
+        {"id": 3, "firstName": "Thor", "lastName": "Odinson", "userAlias": "godofthunder"},
+        {"id": 4, "firstName": "Bruce", "lastName": "Banner", "userAlias": "hulk"},
+        {"id": 5, "firstName": "Natasha", "lastName": "Romanoff", "userAlias": "blackwidow"},
+    ]
+
+
+users = _sidebar_users()
+user_index = st.sidebar.selectbox(
+    "Acting as user",
+    options=list(range(len(users))),
+    format_func=lambda i: (
+        f"{users[i].get('userAlias') or users[i]['id']} (id {users[i]['id']})"
+    ),
+    key="demo_user",
+)
+customer_id = str(users[user_index]["id"])
+set_current_customer(customer_id)
 st.sidebar.caption(
-    "Requests are sent on behalf of this tenant. The Unit Economics dashboard in "
-    "Grafana splits load and cost across these values."
+    "Requests carry **x-org-id**, **x-tenant-id** and **x-customer-id** (the user "
+    "id). The Unit Economics dashboard in Grafana can split on any of those."
 )
 
 service = st.sidebar.radio(
@@ -106,10 +156,12 @@ if service == "Home":
     st.header("Welcome to the Online Store!")
     st.write("Select a service from the sidebar.")
     st.info(
-        f"You are browsing as **{tenant}**. Every request carries that tenant, so the "
-        "*Unit Economics - request attribution* dashboard in Grafana can split requests, "
-        "service seconds and payload bytes across tenants. Switch tenants in the sidebar "
-        "and generate some traffic to see the split move."
+        f"You are browsing as org **{org}**, tenant **{tenant}**, user id "
+        f"**{customer_id}**. Every request carries `x-org-id`, `x-tenant-id` and "
+        "`x-customer-id`, so the *Unit Economics - request attribution* dashboard "
+        "in Grafana can split requests, service seconds and payload bytes by org, "
+        "tenant or customer. Switch the sidebar values and generate some traffic "
+        "to see the split move."
     )
 elif service == "User Service":
     run_user_ui()
