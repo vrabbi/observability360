@@ -1,0 +1,789 @@
+{
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/(SpanCount|AvgLatencyMs|P99LatencyMs)/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Forecast"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/Forecast(Low|High)/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let _steps = toint(${forecast_range}/${bin_size});\nlet _now = bin(now(), ${bin_size});\nOTELTraces\n| where StartTime >= bin(ago(24h), ${bin_size}) and StartTime < _now\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin(ago(24h), ${bin_size}) to _now + totimespan(${forecast_range}) step ${bin_size}\n| extend _hist_len = toint(array_length(SpanCount)) - _steps\n| extend _hist_arr = array_slice(SpanCount, 0, _hist_len - 1)\n| extend (Baseline, Seasonal, Trend, Residual) = series_decompose(_hist_arr)\n| extend (r_min, r_min_idx, r_max, r_max_idx, r_avg, r_stdev, r_var) = series_stats(Residual)\n| extend _pattern_len = min_of(_steps, _hist_len)\n| extend _pattern_start = _hist_len - _pattern_len\n| extend _idx = range(0, toint(array_length(SpanCount)) - 1, 1)\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), _idx to typeof(int)\n| extend _fc_offset = _idx - _hist_len\n| extend _src_idx = iff(_fc_offset >= 0, _pattern_start + (_fc_offset % _pattern_len), _idx)\n| extend _forecast_raw = todouble(_hist_arr[toint(_src_idx)])\n| project StartTime,\n    SpanCount = iff(_idx < _hist_len, tolong(SpanCount), long(null)),\n    Forecast = iff(_idx >= _hist_len - 1, round(_forecast_raw, 0), real(null)),\n    ForecastLow = iff(_idx >= _hist_len - 1, round(max_of(_forecast_raw - 2.5 * r_stdev, 0.0), 0), real(null)),\n    ForecastHigh = iff(_idx >= _hist_len - 1, round(_forecast_raw + 2.5 * r_stdev, 0), real(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Span Volume Forecast - ${service}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/(SpanCount|AvgLatencyMs|P99LatencyMs)/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Forecast"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/Forecast(Low|High)/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let _steps = toint(${forecast_range}/${bin_size});\nlet _now = bin(now(), ${bin_size});\nOTELTraces\n| where StartTime >= bin(ago(24h), ${bin_size}) and StartTime < _now\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| make-series AvgLatency=avg(DurationMs) on StartTime from bin(ago(24h), ${bin_size}) to _now + totimespan(${forecast_range}) step ${bin_size}\n| extend _hist_len = toint(array_length(AvgLatency)) - _steps\n| extend _hist_arr = array_slice(AvgLatency, 0, _hist_len - 1)\n| extend (Baseline, Seasonal, Trend, Residual) = series_decompose(_hist_arr)\n| extend (r_min, r_min_idx, r_max, r_max_idx, r_avg, r_stdev, r_var) = series_stats(Residual)\n| extend _pattern_len = min_of(_steps, _hist_len)\n| extend _pattern_start = _hist_len - _pattern_len\n| extend _idx = range(0, toint(array_length(AvgLatency)) - 1, 1)\n| mv-expand StartTime to typeof(datetime), AvgLatency to typeof(double), _idx to typeof(int)\n| extend _fc_offset = _idx - _hist_len\n| extend _src_idx = iff(_fc_offset >= 0, _pattern_start + (_fc_offset % _pattern_len), _idx)\n| extend _forecast_raw = todouble(_hist_arr[toint(_src_idx)])\n| project StartTime,\n    AvgLatencyMs = iff(_idx < _hist_len, round(AvgLatency, 2), real(null)),\n    Forecast = iff(_idx >= _hist_len - 1, round(_forecast_raw, 2), real(null)),\n    ForecastLow = iff(_idx >= _hist_len - 1, round(max_of(_forecast_raw - 2.5 * r_stdev, 0.0), 2), real(null)),\n    ForecastHigh = iff(_idx >= _hist_len - 1, round(_forecast_raw + 2.5 * r_stdev, 2), real(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Latency Forecast - ${service}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Forecasts the 99th percentile span duration. P99 captures tail latency \u2014 the worst 1% of requests \u2014 which is often the first signal of degradation. The confidence band (95%) shows expected variance.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/(SpanCount|AvgLatencyMs|P99LatencyMs)/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Forecast"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/Forecast(Low|High)/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let _steps = toint(${forecast_range}/${bin_size});\nlet _now = bin(now(), ${bin_size});\nOTELTraces\n| where StartTime >= bin(ago(24h), ${bin_size}) and StartTime < _now\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| make-series AvgLatency=avg(DurationMs) on StartTime from bin(ago(24h), ${bin_size}) to _now + totimespan(${forecast_range}) step ${bin_size}\n| extend _hist_len = toint(array_length(AvgLatency)) - _steps\n| extend _hist_arr = array_slice(AvgLatency, 0, _hist_len - 1)\n| extend (Baseline, Seasonal, Trend, Residual) = series_decompose(_hist_arr)\n| extend (r_min, r_min_idx, r_max, r_max_idx, r_avg, r_stdev, r_var) = series_stats(Residual)\n| extend _pattern_len = min_of(_steps, _hist_len)\n| extend _pattern_start = _hist_len - _pattern_len\n| extend _idx = range(0, toint(array_length(AvgLatency)) - 1, 1)\n| mv-expand StartTime to typeof(datetime), AvgLatency to typeof(double), _idx to typeof(int)\n| extend _fc_offset = _idx - _hist_len\n| extend _src_idx = iff(_fc_offset >= 0, _pattern_start + (_fc_offset % _pattern_len), _idx)\n| extend _forecast_raw = todouble(_hist_arr[toint(_src_idx)])\n| project StartTime,\n    AvgLatencyMs = iff(_idx < _hist_len, round(AvgLatency, 2), real(null)),\n    Forecast = iff(_idx >= _hist_len - 1, round(_forecast_raw, 2), real(null)),\n    ForecastLow = iff(_idx >= _hist_len - 1, round(max_of(_forecast_raw - 2.5 * r_stdev, 0.0), 2), real(null)),\n    ForecastHigh = iff(_idx >= _hist_len - 1, round(_forecast_raw + 2.5 * r_stdev, 2), real(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "P99 Latency Forecast - ${service}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Compares current vs forecasted throughput and P99 latency for every service. Trend % shows predicted change. Red = degradation (throughput dropping or latency rising). Green = improvement.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Throughput Trend %"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -1
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": -20
+              },
+              {
+                "id": "max",
+                "value": 20
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Latency Trend %"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": -20
+              },
+              {
+                "id": "max",
+                "value": 20
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Throughput/bin"
+          }
+        ]
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "let _fr = ${forecast_range};\nlet _bs = ${bin_size};\nlet _steps = toint(_fr / _bs);\nlet _now = bin(now(), _bs);\nlet volume = OTELTraces\n| where StartTime between (bin(ago(24h), _bs) .. _now)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| make-series SpanCount=count() on StartTime from bin(ago(24h), _bs) to _now + _fr step _bs by ServiceName\n| extend Forecast = series_decompose_forecast(SpanCount, _steps, toint(1h/_bs))\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), Forecast to typeof(double)\n| summarize\n    CurrentAvg = round(avgif(todouble(SpanCount), StartTime >= _now - _fr and StartTime < _now), 0),\n    ForecastAvg = round(avgif(Forecast, StartTime >= _now), 0)\n  by ServiceName\n| extend ThroughputChange = round((ForecastAvg - CurrentAvg) / CurrentAvg * 100.0, 1);\nlet latency = OTELTraces\n| where StartTime between (bin(ago(24h), _bs) .. _now)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| make-series P99=percentile(DurationMs, 99) on StartTime from bin(ago(24h), _bs) to _now + _fr step _bs by ServiceName\n| extend Forecast = series_decompose_forecast(P99, _steps, toint(1h/_bs))\n| mv-expand StartTime to typeof(datetime), P99 to typeof(double), Forecast to typeof(double)\n| summarize\n    CurrentP99 = round(avgif(P99, StartTime >= _now - _fr and StartTime < _now), 1),\n    ForecastP99 = round(avgif(Forecast, StartTime >= _now), 1)\n  by ServiceName\n| extend LatencyChange = round((ForecastP99 - CurrentP99) / CurrentP99 * 100.0, 1);\nvolume\n| join kind=inner latency on ServiceName\n| where CurrentAvg > 5\n| project\n    Service=ServiceName,\n    [\"Throughput/bin\"]=CurrentAvg,\n    [\"Forecast Throughput\"]=ForecastAvg,\n    [\"Throughput Trend %\"]=ThroughputChange,\n    [\"P99 Latency (ms)\"]=CurrentP99,\n    [\"Forecast P99 (ms)\"]=ForecastP99,\n    [\"Latency Trend %\"]=LatencyChange\n| order by [\"Throughput/bin\"] desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Forecast Summary \u2014 All Services",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 40,
+  "tags": [
+    "forecasting"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "definition": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| summarize count() by ServiceName\n| project ServiceName",
+        "label": "Service",
+        "name": "service",
+        "options": [],
+        "query": {
+          "OpenAI": false,
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| summarize count() by ServiceName\n| project ServiceName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "10m",
+          "value": "10m"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Bin size",
+        "multi": false,
+        "name": "bin_size",
+        "options": [
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": true,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          }
+        ],
+        "query": "1m,5m,10m,1h,1d",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "12h",
+          "value": "12h"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Forecast Range",
+        "multi": false,
+        "name": "forecast_range",
+        "options": [
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "3h",
+            "value": "3h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          },
+          {
+            "selected": true,
+            "text": "12h",
+            "value": "12h"
+          }
+        ],
+        "query": "1h,3h,6h,12h",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now+12h"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "timezone": "browser",
+  "title": "forecasting",
+  "uid": "bfgamxqqy1vk0a"
+}

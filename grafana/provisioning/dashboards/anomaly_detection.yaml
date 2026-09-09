@@ -1,0 +1,14 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
+apiVersion: 1
+providers:
+  - name: 'Anomaly Detection Dashboards'
+    orgId: 1
+    folder: 'anomaly_detection'
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/anomaly_detection

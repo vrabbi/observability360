@@ -1,0 +1,536 @@
+{
+  "editable": true,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Anomaly"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "points"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 8
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Baseline"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, 1.5)\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), anomalies to typeof(int), score to typeof(double), baseline to typeof(double)\n| project StartTime, SpanCount, Baseline=tolong(baseline), Anomaly=iff(anomalies != 0, tolong(SpanCount), long(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Span Volume Anomalies \u2014 ${service}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Anomaly"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "points"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 8
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Baseline"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\" and tolower(SeverityText) in (\"error\", \"critical\")\n| make-series ErrorCount=count() on Timestamp from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(ErrorCount, 1.5)\n| mv-expand Timestamp to typeof(datetime), ErrorCount to typeof(long), anomalies to typeof(int), score to typeof(double), baseline to typeof(double)\n| project Timestamp, ErrorCount, Baseline=tolong(baseline), Anomaly=iff(anomalies != 0, tolong(ErrorCount), long(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Error Rate Anomalies \u2014 ${service}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Anomaly"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "points"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 8
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Baseline"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 3,
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| make-series AvgLatency=avg(DurationMs) on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(AvgLatency, 1.5)\n| mv-expand StartTime to typeof(datetime), AvgLatency to typeof(double), anomalies to typeof(int), score to typeof(double), baseline to typeof(double)\n| project StartTime, AvgLatencyMs=round(AvgLatency, 2), Baseline=round(baseline, 2), Anomaly=iff(anomalies != 0, round(AvgLatency, 2), real(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Latency Anomalies \u2014 ${service}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AnomalyScore"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 4,
+      "options": {
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "AnomalyScore"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "let SpanAnomalies = OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, 1.5)\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), anomalies to typeof(int), score to typeof(double)\n| where anomalies != 0\n| project Time=StartTime, Signal=\"Span Volume\", Value=tolong(SpanCount), AnomalyScore=round(score, 2), Direction=iff(anomalies > 0, \"Spike\", \"Drop\");\nlet ErrorAnomalies = OTELLogs\n| where $__timeFilter(Timestamp)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\" and tolower(SeverityText) in (\"error\", \"critical\")\n| make-series ErrorCount=count() on Timestamp from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(ErrorCount, 1.5)\n| mv-expand Timestamp to typeof(datetime), ErrorCount to typeof(long), anomalies to typeof(int), score to typeof(double)\n| where anomalies != 0\n| project Time=Timestamp, Signal=\"Error Rate\", Value=tolong(ErrorCount), AnomalyScore=round(score, 2), Direction=iff(anomalies > 0, \"Spike\", \"Drop\");\nlet LatencyAnomalies = OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| make-series AvgLatency=avg(DurationMs) on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(AvgLatency, 1.5)\n| mv-expand StartTime to typeof(datetime), AvgLatency to typeof(double), anomalies to typeof(int), score to typeof(double)\n| where anomalies != 0\n| project Time=StartTime, Signal=\"Latency\", Value=tolong(AvgLatency), AnomalyScore=round(score, 2), Direction=iff(anomalies > 0, \"Spike\", \"Drop\");\nSpanAnomalies | union ErrorAnomalies | union LatencyAnomalies\n| sort by Time asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Correlated Anomaly Events \u2014 ${service}",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Time windows where multiple signals (spans, errors, latency) are anomalous simultaneously \u2014 strong root cause indicator",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 5,
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "let SpanAnomalies = OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, 1.5)\n| mv-expand StartTime to typeof(datetime), anomalies to typeof(int), score to typeof(double)\n| where anomalies != 0\n| project Time=bin(StartTime, ${bin_size}), Signal=\"Spans\", Score=round(abs(score), 2);\nlet ErrorAnomalies = OTELLogs\n| where $__timeFilter(Timestamp)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\" and tolower(SeverityText) in (\"error\", \"critical\")\n| make-series ErrorCount=count() on Timestamp from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(ErrorCount, 1.5)\n| mv-expand Timestamp to typeof(datetime), anomalies to typeof(int), score to typeof(double)\n| where anomalies != 0\n| project Time=bin(Timestamp, ${bin_size}), Signal=\"Errors\", Score=round(abs(score), 2);\nlet LatencyAnomalies = OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| make-series AvgLatency=avg(DurationMs) on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(AvgLatency, 1.5)\n| mv-expand StartTime to typeof(datetime), anomalies to typeof(int), score to typeof(double)\n| where anomalies != 0\n| project Time=bin(StartTime, ${bin_size}), Signal=\"Latency\", Score=round(abs(score), 2);\nSpanAnomalies | union ErrorAnomalies | union LatencyAnomalies\n| summarize Signals=make_set(Signal), MaxScore=max(Score), SignalCount=dcount(Signal) by Time\n| where SignalCount >= 2\n| extend Signals=strcat_array(Signals, \", \")\n| project Time, CoOccurringSignals=Signals, SignalCount, MaxScore\n| sort by Time desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Co-occurring Anomalies by Time Window",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Most frequent error messages during time periods with detected anomalies",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 6,
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "let AnomalyTimes = OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, 1.5)\n| mv-expand StartTime to typeof(datetime), anomalies to typeof(int)\n| where anomalies != 0\n| project AnomalyTime=StartTime;\nOTELLogs\n| where $__timeFilter(Timestamp)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\" and tolower(SeverityText) in (\"error\", \"critical\")\n| where Timestamp between (toscalar(AnomalyTimes | summarize min(AnomalyTime)) .. toscalar(AnomalyTimes | summarize max(AnomalyTime)))\n| summarize Count=count(), FirstSeen=min(Timestamp), LastSeen=max(Timestamp) by ErrorMessage=substring(Body, 0, 150)\n| top 10 by Count desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Top Error Messages During Anomaly Windows",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Highest latency traces during anomaly periods \u2014 drill into root cause",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "id": 7,
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "let AnomalyTimes = OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size}\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, 1.5)\n| mv-expand StartTime to typeof(datetime), anomalies to typeof(int)\n| where anomalies != 0\n| project AnomalyTime=StartTime;\nOTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| where StartTime between (toscalar(AnomalyTimes | summarize min(AnomalyTime)) .. toscalar(AnomalyTimes | summarize max(AnomalyTime)))\n| project StartTime, TraceID, SpanName, DurationMs, SpanStatus\n| top 15 by DurationMs desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Slowest Traces During Anomaly Windows",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Which services have anomalies in the selected time range \u2014 helps identify cascading failures",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "id": 8,
+      "targets": [
+        {
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to $__timeTo step ${bin_size} by ServiceName\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, 1.5)\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), anomalies to typeof(int), score to typeof(double)\n| where anomalies != 0\n| summarize AnomalyCount=count(), AvgScore=round(avg(abs(score)), 2), MaxScore=round(max(abs(score)), 2), FirstAnomaly=min(StartTime), LastAnomaly=max(StartTime) by ServiceName\n| sort by AnomalyCount desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Cross-Service Anomaly Summary",
+      "type": "table"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 40,
+  "tags": [
+    "diagnostics",
+    "root-cause"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "OBS360DataSource"
+        },
+        "definition": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| summarize count() by ServiceName\n| project ServiceName",
+        "label": "Service",
+        "name": "service",
+        "options": [],
+        "query": {
+          "database": "openteldb",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| summarize count() by ServiceName\n| project ServiceName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "5m",
+          "value": "5m"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Bin size",
+        "multi": false,
+        "name": "bin_size",
+        "options": [
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": true,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          }
+        ],
+        "query": "1m,5m,10m,1h,1d",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "diagnostic root cause analysis",
+  "uid": "diag-root-cause-analysis"
+}

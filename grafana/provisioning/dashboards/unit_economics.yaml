@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: 'Unit Economics Dashboards'
+    orgId: 1
+    folder: 'unit_economics'
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/unit_economics

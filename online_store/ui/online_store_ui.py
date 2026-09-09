@@ -12,6 +12,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
     
 from online_store.otel.otel import configure_telemetry
+from online_store.otel.tenant import DEMO_TENANTS, set_current_tenant
 from db_init import initialize_db
 from order_ui import run_order_ui
 from cart_ui import run_cart_ui
@@ -86,6 +87,16 @@ st.markdown(svg_logo_centered, unsafe_allow_html=True)
 # ---------------------------------------------------------------------
 # Sidebar Navigation
 # ---------------------------------------------------------------------
+# The selected tenant travels with every request the UI makes, and from there on to
+# every service in the call chain, which is what the "Unit Economics" Grafana
+# dashboard groups by. Set once per rerun, before any service call is made.
+tenant = st.sidebar.selectbox("Acting as tenant", DEMO_TENANTS, index=0)
+set_current_tenant(tenant)
+st.sidebar.caption(
+    "Requests are sent on behalf of this tenant. The Unit Economics dashboard in "
+    "Grafana splits load and cost across these values."
+)
+
 service = st.sidebar.radio(
     "Select Service",
     ["Home", "User Service", "Product Service", "Cart Service", "Order Service"]
@@ -94,6 +105,12 @@ service = st.sidebar.radio(
 if service == "Home":
     st.header("Welcome to the Online Store!")
     st.write("Select a service from the sidebar.")
+    st.info(
+        f"You are browsing as **{tenant}**. Every request carries that tenant, so the "
+        "*Unit Economics - request attribution* dashboard in Grafana can split requests, "
+        "service seconds and payload bytes across tenants. Switch tenants in the sidebar "
+        "and generate some traffic to see the split move."
+    )
 elif service == "User Service":
     run_user_ui()
 elif service == "Product Service":
