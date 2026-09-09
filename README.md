@@ -28,6 +28,15 @@ Create a file named ``terraform.tfvars`` with the following content:
 subscription_id = "<your_subscription_id>"
 base_name = "<base_name_prefix_for_the_created_resources>" 
 email = "<your_email_address>"
+
+anomaly_subscriptions = [
+  {
+    anomality = "accounting"
+    user      = "Haggai"
+    mail      = "haggaiz@terasky.com"
+    # threshold, bin_size, and time_window default to 0.2 / 5m / 3h
+  },
+]
 ```
 
 for base_name use only alphanumeric letters, make sure its no longer than 12 characters.
@@ -137,43 +146,10 @@ Caveats worth knowing before relying on this:
 - **OBI and TLS.** For path 2, OBI reads plaintext plus TLS for Go and OpenSSL based processes.
   Traffic encrypted by another library is only visible at the network level.
 
-### 4. Validate functionallity
-
-Navigate to the online store ui and start to play with the application, After that navigate to the grafana instance to see the telemetry visualization (it might take few minutes for the data to arrive).
-
-### 5. Online Store
-
-Online Store Application is a demo that simulates a complete online store. It functions as a target monitored application, providing essential services such as user management, product management, and order processing. This setup enables you to deploy and evaluate observability tools in a realistic environment.
-
-## Online Store Services
-
-The online store is composed of several services:
-1. **User Service**  
-    Manages online store user accounts.
-    Located in the `online_store/user` directory.
-2. **Product Service**  
-    Located in the `online_store/product` directory.  
-    Manages product information and catalog data, ensuring the seamless handling of your inventory details.  
-3. **Cart Service**  
-    Manages user shopping carts.
-    Located in the `online_store/cart` directory.
-4. **Order Service**  
-    Order processing.
-    Located in the `online_store/order` directory.
-5. **Online Store UI**
-    The online store UI.
-    Located in the `online_store/ui` directory.
-
-### 6. Cleaning Up
+### 4. Cleaning Up
 
 To destroy the infrastructure and application, run each time in each directory, first the app directory:
 
 ```sh
 terraform destroy -auto-approve -var-file="../terraform.tfvars"
 ```
-
-### 7. Contact
-
-For any questions or feedback, please open an issue or contact the maintainers:
-
-Vlad Feigin - vladfeigin@microsoft.com, Omer Feldman - omerfeldman@microsoft.com

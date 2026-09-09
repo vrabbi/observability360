@@ -30,13 +30,26 @@ variable "github_token" {
   description = "Github PAT for ACR Build tasks to pull the source code of this repo"
 }
 
+variable "anomaly_subscriptions" {
+  description = "Declared so the shared terraform.tfvars file is accepted. Used only by the infra stack to seed the AnomalySubscriptions ADX table."
+  type = list(object({
+    anomality   = string
+    user        = string
+    mail        = string
+    threshold   = optional(number, 0.2)
+    bin_size    = optional(string, "5m")
+    time_window = optional(string, "3h")
+  }))
+  default = []
+}
+
 variable "github_repo_url" {
-  default = "https://github.com/vrabbi/observability360"
+  default     = "https://github.com/vrabbi/observability360"
   description = "The repo with the source code of this project which is used by ACR to build our images"
 }
 
 variable "github_repo_branch" {
-  default = "main"
+  default     = "main"
   description = "The branch of the github repo with the source code of this project which is used by ACR to build our images"
 }
 

@@ -1,0 +1,956 @@
+{
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 20,
+      "panels": [],
+      "title": "Series Decomposition (series_decompose)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${adx}"
+      },
+      "description": "Decomposes span count time series into Trend (long-term direction), Seasonal (repeating patterns), and Residual (noise/anomalies).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trend"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Seasonal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Residual"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${adx}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to bin(now(), ${bin_size}) - totimespan(${bin_size}) step ${bin_size}\n| extend (Baseline, Seasonal, Trend, Residual) = series_decompose(SpanCount)\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), Baseline to typeof(double), Seasonal to typeof(double), Trend to typeof(double), Residual to typeof(double)\n| project StartTime, SpanCount, Trend=round(Trend, 2), Seasonal=round(Seasonal, 2), Residual=round(Residual, 2)",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Span Volume Decomposition - ${service}",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${adx}"
+      },
+      "description": "Decomposes average latency into trend, seasonal, and residual components.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trend"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Seasonal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Residual"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${adx}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| extend DurationMs = datetime_diff(\"millisecond\", EndTime, StartTime)\n| make-series AvgLatency=avg(DurationMs) on StartTime from bin($__timeFrom, ${bin_size}) to bin(now(), ${bin_size}) - totimespan(${bin_size}) step ${bin_size}\n| extend (Baseline, Seasonal, Trend, Residual) = series_decompose(AvgLatency)\n| mv-expand StartTime to typeof(datetime), AvgLatency to typeof(double), Baseline to typeof(double), Seasonal to typeof(double), Trend to typeof(double), Residual to typeof(double)\n| project StartTime, AvgLatencyMs=round(AvgLatency, 2), Trend=round(Trend, 2), Seasonal=round(Seasonal, 2), Residual=round(Residual, 2)",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Latency Decomposition - ${service}",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 21,
+      "panels": [],
+      "title": "Signal Smoothing (series_fir)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${adx}"
+      },
+      "description": "Raw span count with FIR-filtered moving averages (25min and 75min windows). Smoothing reveals underlying signal by removing short-term noise.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "SpanCount"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MovingAvg_25min"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MovingAvg_75min"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${adx}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to bin(now(), ${bin_size}) - totimespan(${bin_size}) step ${bin_size}\n| extend MovingAvg5 = series_fir(SpanCount, repeat(1, 5), true, true)\n| extend MovingAvg15 = series_fir(SpanCount, repeat(1, 15), true, true)\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), MovingAvg5 to typeof(double), MovingAvg15 to typeof(double)\n| extend _end = bin(now(), ${bin_size}) - ${bin_size} * 2\n| project StartTime, SpanCount,\n    MovingAvg_25min=iff(StartTime < _end - ${bin_size} * 2, round(MovingAvg5, 0), real(null)),\n    MovingAvg_75min=iff(StartTime < _end - ${bin_size} * 7, round(MovingAvg15, 0), real(null))",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Span Volume with Moving Averages - ${service}",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 22,
+      "panels": [],
+      "title": "Scalability - Cross-Service Analysis (series_stats, make-series by)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${adx}"
+      },
+      "description": "Computes Min/Max/Avg/Stdev/Variance across all services in a single query using make-series + series_stats. Demonstrates ADX scalability across multiple time series.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "id": 4,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${adx}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| make-series SpanCount=count() on StartTime from bin($__timeFrom, ${bin_size}) to bin(now(), ${bin_size}) - totimespan(${bin_size}) step ${bin_size} by ServiceName\n| extend (s_min, s_min_idx, s_max, s_max_idx, s_avg, s_stdev, s_variance) = series_stats(SpanCount)\n| project ServiceName, Min=round(s_min, 0), Max=round(s_max, 0), Avg=round(s_avg, 2), Stdev=round(s_stdev, 2), Variance=round(s_variance, 2)\n| order by Avg desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Per-Service Span Volume Statistics (series_stats)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${adx}"
+      },
+      "description": "Runs series_decompose on every service in parallel (make-series by ServiceName), then extracts residual stdev, max, and trend slope. High residual = unstable; positive trend = increasing errors.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${adx}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELLogs\n| where $__timeFilter(Timestamp)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| where tolower(SeverityText) in (\"error\", \"critical\")\n| make-series ErrorCount=count() on Timestamp from bin($__timeFrom, ${bin_size}) to bin(now(), ${bin_size}) - totimespan(${bin_size}) step ${bin_size} by ServiceName\n| extend (Baseline, Seasonal, Trend, Residual) = series_decompose(ErrorCount)\n| extend (r_min, r_min_idx, r_max, r_max_idx, r_avg, r_stdev, r_var) = series_stats(Residual)\n| extend (t_min, t_min_idx, t_max, t_max_idx, t_avg, t_stdev, t_var) = series_stats(Trend)\n| project ServiceName, ResidualStdev=round(r_stdev, 2), ResidualMax=round(r_max, 2), TrendSlope=round(t_avg, 4)\n| order by ResidualStdev desc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Per-Service Error Decomposition Summary",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "id": 23,
+      "panels": [],
+      "title": "Spectral Analysis (series_fft)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "${adx}"
+      },
+      "description": "FFT-based spectral analysis showing the top 10 dominant frequency components over a 24h window (5m bins). Higher magnitude = stronger periodic signal at that frequency.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "${adx}"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let lookback = 24h;\nlet step = ${bin_size};\nlet total_bins = toint(lookback / step);\nOTELTraces\n| where StartTime > ago(lookback)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName == \"${service}\"\n| make-series SpanCount=count() on StartTime from bin(ago(lookback), ${bin_size}) to bin(now(), step) - step step step\n| extend (fft_real, fft_imag) = series_fft(SpanCount)\n| project fft_real, fft_imag\n| mv-expand with_itemindex=i fft_real to typeof(double), fft_imag to typeof(double)\n| where i > 0 and i <= total_bins / 2\n| extend Magnitude = round(sqrt(fft_real * fft_real + fft_imag * fft_imag), 2)\n| extend PeriodMinutes = round(toreal(total_bins) / toreal(i) * 5.0, 1)\n| extend PeriodHuman = case(\n    PeriodMinutes >= 1440, strcat(round(PeriodMinutes / 1440, 1), \" days\"),\n    PeriodMinutes >= 60, strcat(round(PeriodMinutes / 60, 1), \" hours\"),\n    strcat(PeriodMinutes, \" min\"))\n| top 10 by Magnitude desc\n| project Rank=row_number(), PeriodHuman, PeriodMinutes, Magnitude",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Top Frequency Components in Span Volume - ${service}",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 40,
+  "tags": [
+    "decomposition",
+    "series-analytics"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "Azure Data Explorer",
+          "value": "OBS360DataSource"
+        },
+        "hide": 2,
+        "label": "ADX Data Source",
+        "name": "adx",
+        "options": [],
+        "query": "grafana-azure-data-explorer-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "grafana-azure-data-explorer-datasource",
+          "uid": "${adx}"
+        },
+        "definition": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| summarize count() by ServiceName\n| project ServiceName",
+        "label": "Service",
+        "name": "service",
+        "options": [],
+        "query": {
+          "OpenAI": false,
+          "clusterUri": "",
+          "database": "openteldb",
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELTraces\n| where $__timeFilter(StartTime)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName != \"\"\n| summarize count() by ServiceName\n| project ServiceName",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "resultFormat": "table"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "5m",
+          "value": "5m"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Bin size",
+        "multi": false,
+        "name": "bin_size",
+        "options": [
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": true,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          }
+        ],
+        "query": "1m,5m,10m,1h,1d",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "series analytics",
+  "uid": "cfgapickrec5cf"
+}

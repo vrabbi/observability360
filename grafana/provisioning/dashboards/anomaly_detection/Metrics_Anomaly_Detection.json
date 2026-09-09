@@ -1,0 +1,784 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 2,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "points"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 5
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let top_metrics = OTELMetrics\r\n    | where $__timeFilter(Timestamp)\r\n    | extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n    | where service == \"${service_name}\"\r\n    | summarize bin_avg = avg(MetricValue) by bin(Timestamp, $__interval), MetricName\r\n    | summarize stdev_t = stdev(bin_avg), max_t = max(bin_avg), n = count() by MetricName\r\n    | where n > 3 and max_t > 0\r\n    | extend Spread = stdev_t / max_t\r\n    | top 10 by Spread desc\r\n    | project MetricName;\r\nlet max_vals = OTELMetrics\r\n    | where $__timeFilter(Timestamp)\r\n    | extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n    | where service == \"${service_name}\" and MetricName in (top_metrics)\r\n    | summarize max_val = max(MetricValue) by MetricName;\r\nOTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where service == \"${service_name}\" and MetricName in (top_metrics)\r\n| summarize avg_value = avg(MetricValue) by bin(Timestamp, $__interval), MetricName\r\n| join kind=inner max_vals on MetricName\r\n| extend pct_of_max = round(avg_value * 100.0 / max_val, 1)\r\n| project Timestamp, MetricName, pct_of_max\r\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        },
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let top_metrics = OTELMetrics\r\n    | where $__timeFilter(Timestamp)\r\n    | extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n    | where service == \"${service_name}\"\r\n    | summarize bin_avg = avg(MetricValue) by bin(Timestamp, $__interval), MetricName\r\n    | summarize stdev_t = stdev(bin_avg), max_t = max(bin_avg), n = count() by MetricName\r\n    | where n > 3 and max_t > 0\r\n    | extend Spread = stdev_t / max_t\r\n    | top 10 by Spread desc\r\n    | project MetricName;\r\nlet max_vals = OTELMetrics\r\n    | where $__timeFilter(Timestamp)\r\n    | extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n    | where service == \"${service_name}\" and MetricName in (top_metrics)\r\n    | summarize max_val = max(MetricValue) by MetricName;\r\nOTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where service == \"${service_name}\" and MetricName in (top_metrics)\r\n| make-series avg_value = avg(MetricValue) default=0 on Timestamp step $__interval by MetricName\r\n| extend (anomalies, anomaly_score, baseline) = series_decompose_anomalies(avg_value, 1.5, -1, 'linefit')\r\n| mv-expand Timestamp to typeof(datetime), avg_value to typeof(double), anomalies to typeof(int)\r\n| where toint(anomalies) != 0\r\n| join kind=inner max_vals on MetricName\r\n| extend pct_of_max = round(todouble(avg_value) * 100.0 / max_val, 1)\r\n| project Timestamp, MetricName, pct_of_max\r\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "B",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Top 10 Metrics \u2014 Value Over Time (% of max)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Metrics where StdDev/Avg > 50% \u2014 high coefficient of variation signals unstable or anomalous behavior.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Variability %"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Variability"
+          }
+        ]
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where service == \"${service_name}\"\r\n| summarize avg_val = avg(MetricValue), stdev_val = stdev(MetricValue), min_val = min(MetricValue), max_val = max(MetricValue), sample_count = count() by MetricName\r\n| where sample_count > 10 and avg_val > 0\r\n| extend Variability = round(stdev_val / avg_val * 100, 1)\r\n| extend MaxMinRatio = round(max_val / (min_val + 0.0001), 2)\r\n| order by Variability desc\r\n| project MetricName, Variability, AvgValue = round(avg_val, 4), MinValue = round(min_val, 4), MaxValue = round(max_val, 4), MaxMinRatio, Samples = sample_count",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "High Variability Metrics \u2014 order by Variability",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "When P99 is >2x the P50 (median), the metric has extreme outlier values \u2014 a strong anomaly signal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P99/P50 Spike Ratio"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "SpikeRatio"
+          }
+        ]
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "OTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where service == \"${service_name}\"\r\n| summarize p50 = percentile(MetricValue, 50), p95 = percentile(MetricValue, 95), p99 = percentile(MetricValue, 99), sample_count = count() by MetricName\r\n| where sample_count > 5 and p50 > 0\r\n| extend SpikeRatio = round(p99 / p50, 2)\r\n| where SpikeRatio > 2\r\n| order by SpikeRatio desc\r\n| project MetricName, SpikeRatio, P50 = round(p50, 4), P95 = round(p95, 4), P99 = round(p99, 4), Samples = sample_count",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Percentile Outliers \u2014 order by SpikeRatio",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-data-explorer-datasource",
+        "uid": "OBS360DataSource"
+      },
+      "description": "Number of metric data points received per namespace per interval. Sudden drops indicate collection failures or missing data \u2014 an ingestion anomaly.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Metric data points / interval",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 2,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "spanNulls": false,
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "noData": {
+          "message": "No ingestion gaps detected for this service"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "OpenAI": false,
+          "database": "openteldb",
+          "datasource": {
+            "type": "grafana-azure-data-explorer-datasource",
+            "uid": "OBS360DataSource"
+          },
+          "expression": {
+            "groupBy": {
+              "expressions": [],
+              "type": "and"
+            },
+            "reduce": {
+              "expressions": [],
+              "type": "and"
+            },
+            "where": {
+              "expressions": [],
+              "type": "and"
+            }
+          },
+          "pluginVersion": "6.0.1",
+          "query": "let top_gap_metrics = OTELMetrics\r\n    | where $__timeFilter(Timestamp)\r\n    | extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n    | where service == \"${service_name}\"\r\n    | summarize bin_count = count() by bin(Timestamp, $__interval), MetricName\r\n    | summarize actual_bins = count(), first_bin = min(Timestamp), last_bin = max(Timestamp), avg_count = avg(bin_count) by MetricName\r\n    | where actual_bins > 3 and avg_count > 5\r\n    | extend expected_bins = tolong((last_bin - first_bin) / $__interval) + 1\r\n    | extend missing_bins = expected_bins - actual_bins\r\n    | where missing_bins > 0\r\n    | top 10 by missing_bins desc\r\n    | project MetricName;\r\nOTELMetrics\r\n| where $__timeFilter(Timestamp)\r\n| extend service = tostring(parse_json(ResourceAttributes)[\"service.name\"])\r\n| where service == \"${service_name}\"\r\n| where MetricName in (top_gap_metrics)\r\n| make-series _count = count() default=0 on Timestamp step $__interval by MetricName\r\n| mv-expand _count to typeof(long), Timestamp to typeof(datetime)\r\n| summarize metric_count = toreal(max(_count)) by Timestamp, MetricName\r\n| extend metric_count = iff(metric_count == 0.0, real(null), metric_count)\r\n| order by Timestamp asc",
+          "querySource": "raw",
+          "queryType": "KQL",
+          "rawMode": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Top 10 Metrics \u2014 Ingestion Rate (Detect Gaps)",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "5m",
+  "schemaVersion": 40,
+  "tags": [
+    "anomaly-detection",
+    "metrics"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "accounting",
+          "value": "accounting"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Service",
+        "multi": false,
+        "name": "service_name",
+        "options": [
+          {
+            "selected": false,
+            "text": "Cart Service",
+            "value": "Cart Service"
+          },
+          {
+            "selected": false,
+            "text": "Order Service",
+            "value": "Order Service"
+          },
+          {
+            "selected": false,
+            "text": "Order UI",
+            "value": "Order UI"
+          },
+          {
+            "selected": false,
+            "text": "Product Service",
+            "value": "Product Service"
+          },
+          {
+            "selected": false,
+            "text": "User Service",
+            "value": "User Service"
+          },
+          {
+            "selected": true,
+            "text": "accounting",
+            "value": "accounting"
+          },
+          {
+            "selected": false,
+            "text": "ad",
+            "value": "ad"
+          },
+          {
+            "selected": false,
+            "text": "cadvisor",
+            "value": "cadvisor"
+          },
+          {
+            "selected": false,
+            "text": "cart",
+            "value": "cart"
+          },
+          {
+            "selected": false,
+            "text": "checkout",
+            "value": "checkout"
+          },
+          {
+            "selected": false,
+            "text": "coredns",
+            "value": "coredns"
+          },
+          {
+            "selected": false,
+            "text": "currency",
+            "value": "currency"
+          },
+          {
+            "selected": false,
+            "text": "email",
+            "value": "email"
+          },
+          {
+            "selected": false,
+            "text": "flagd",
+            "value": "flagd"
+          },
+          {
+            "selected": false,
+            "text": "fluent-bit",
+            "value": "fluent-bit"
+          },
+          {
+            "selected": false,
+            "text": "fraud-detection",
+            "value": "fraud-detection"
+          },
+          {
+            "selected": false,
+            "text": "frontend",
+            "value": "frontend"
+          },
+          {
+            "selected": false,
+            "text": "frontend-proxy",
+            "value": "frontend-proxy"
+          },
+          {
+            "selected": false,
+            "text": "grafana",
+            "value": "grafana"
+          },
+          {
+            "selected": false,
+            "text": "image-provider",
+            "value": "image-provider"
+          },
+          {
+            "selected": false,
+            "text": "jaeger",
+            "value": "jaeger"
+          },
+          {
+            "selected": false,
+            "text": "kafka",
+            "value": "kafka"
+          },
+          {
+            "selected": false,
+            "text": "kelvin",
+            "value": "kelvin"
+          },
+          {
+            "selected": false,
+            "text": "konnectivity-agent",
+            "value": "konnectivity-agent"
+          },
+          {
+            "selected": false,
+            "text": "ksm",
+            "value": "ksm"
+          },
+          {
+            "selected": false,
+            "text": "kube-proxy",
+            "value": "kube-proxy"
+          },
+          {
+            "selected": false,
+            "text": "llm",
+            "value": "llm"
+          },
+          {
+            "selected": false,
+            "text": "load-generator",
+            "value": "load-generator"
+          },
+          {
+            "selected": false,
+            "text": "metrics-server",
+            "value": "metrics-server"
+          },
+          {
+            "selected": false,
+            "text": "olm-operator",
+            "value": "olm-operator"
+          },
+          {
+            "selected": false,
+            "text": "online-store-cart",
+            "value": "online-store-cart"
+          },
+          {
+            "selected": false,
+            "text": "online-store-order",
+            "value": "online-store-order"
+          },
+          {
+            "selected": false,
+            "text": "online-store-product",
+            "value": "online-store-product"
+          },
+          {
+            "selected": false,
+            "text": "online-store-ui",
+            "value": "online-store-ui"
+          },
+          {
+            "selected": false,
+            "text": "online-store-user",
+            "value": "online-store-user"
+          },
+          {
+            "selected": false,
+            "text": "otel-collector",
+            "value": "otel-collector"
+          },
+          {
+            "selected": false,
+            "text": "payment",
+            "value": "payment"
+          },
+          {
+            "selected": false,
+            "text": "postgresql",
+            "value": "postgresql"
+          },
+          {
+            "selected": false,
+            "text": "product-catalog",
+            "value": "product-catalog"
+          },
+          {
+            "selected": false,
+            "text": "product-reviews",
+            "value": "product-reviews"
+          },
+          {
+            "selected": false,
+            "text": "quote",
+            "value": "quote"
+          },
+          {
+            "selected": false,
+            "text": "recommendation",
+            "value": "recommendation"
+          },
+          {
+            "selected": false,
+            "text": "shipping",
+            "value": "shipping"
+          },
+          {
+            "selected": false,
+            "text": "valkey-cart",
+            "value": "valkey-cart"
+          }
+        ],
+        "query": "Cart Service,Order Service,Order UI,Product Service,User Service,accounting,ad,cadvisor,cart,checkout,coredns,currency,email,flagd,fluent-bit,fraud-detection,frontend,frontend-proxy,grafana,image-provider,jaeger,kafka,kelvin,konnectivity-agent,ksm,kube-proxy,llm,load-generator,metrics-server,olm-operator,online-store-cart,online-store-order,online-store-product,online-store-ui,online-store-user,otel-collector,payment,postgresql,product-catalog,product-reviews,quote,recommendation,shipping,valkey-cart",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Metrics Anomaly Detection",
+  "uid": "metrics-anomaly-detection",
+  "weekStart": ""
+}

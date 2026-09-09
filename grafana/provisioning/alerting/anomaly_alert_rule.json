@@ -1,0 +1,198 @@
+{
+    "id": 23,
+    "uid": "acct_alert_final",
+    "orgID": 1,
+    "folderUID": "efhj3g33xtc74c",
+    "ruleGroup": "anomaly_group",
+    "title": "test_accounting_alert",
+    "condition": "C",
+    "data": [
+        {
+            "refId": "A",
+            "queryType": "KQL",
+            "relativeTimeRange": {
+                "from": 10800,
+                "to": 0
+            },
+            "datasourceUid": "OBS360DataSource",
+            "model": {
+                "database": "openteldb",
+                "datasource": {
+                    "type": "grafana-azure-data-explorer-datasource",
+                    "uid": "OBS360DataSource"
+                },
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "query": "let _config = AnomalySubscriptions | summarize bin_size=max(totime(bin_size)), time_window=max(totime(time_window));\nlet _bin = toscalar(_config | project bin_size);\nlet _window = toscalar(_config | project time_window);\nlet _threshold = toscalar(AnomalySubscriptions | summarize max(threshold));\nOTELTraces\n| where StartTime > ago(_window)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName in (AnomalySubscriptions | project anomality)\n| make-series SpanCount = count() default=0 on StartTime from bin(ago(_window), _bin) to bin(now(), _bin) - _bin * 3 step _bin by ServiceName\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, _threshold, -1, 'linefit')\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), anomalies to typeof(int), score to typeof(real), baseline to typeof(real)\n| where SpanCount > 0 and anomalies != 0 and StartTime > ago(25m)\n| join kind=inner AnomalySubscriptions on $left.ServiceName == $right.anomality\n| summarize arg_max(abs(score), anomalies, SpanCount, StartTime, threshold, bin_size, time_window) by ServiceName, mail\n| extend Direction = iff(anomalies > 0, \"spike\", \"drop\")\n| project Timestamp = now(), ServiceName, mail, Direction, Threshold = tostring(threshold), BinSize = tostring(bin_size), TimeWindow = tostring(time_window), Value = abs(score)",
+                "querySource": "raw",
+                "queryType": "KQL",
+                "rawMode": true,
+                "refId": "A",
+                "resultFormat": "time_series"
+            }
+        },
+        {
+            "refId": "B",
+            "queryType": "",
+            "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+            },
+            "datasourceUid": "-100",
+            "model": {
+                "datasource": {
+                    "type": "__expr__",
+                    "uid": "-100"
+                },
+                "expression": "A",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "B",
+                "settings": {
+                    "mode": "dropNN"
+                },
+                "type": "reduce"
+            }
+        },
+        {
+            "refId": "C",
+            "queryType": "",
+            "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+            },
+            "datasourceUid": "-100",
+            "model": {
+                "conditions": [
+                    {
+                        "evaluator": {
+                            "params": [
+                                0
+                            ],
+                            "type": "gt"
+                        }
+                    }
+                ],
+                "datasource": {
+                    "type": "__expr__",
+                    "uid": "-100"
+                },
+                "expression": "B",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "refId": "C",
+                "type": "threshold"
+            }
+        },
+        {
+            "refId": "D",
+            "queryType": "KQL",
+            "relativeTimeRange": {
+                "from": 10800,
+                "to": 0
+            },
+            "datasourceUid": "OBS360DataSource",
+            "model": {
+                "database": "openteldb",
+                "datasource": {
+                    "type": "grafana-azure-data-explorer-datasource",
+                    "uid": "OBS360DataSource"
+                },
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "query": "let _config = AnomalySubscriptions | summarize bin_size=max(totime(bin_size)), time_window=max(totime(time_window));\nlet _bin = toscalar(_config | project bin_size);\nlet _window = toscalar(_config | project time_window);\nlet _threshold = toscalar(AnomalySubscriptions | summarize max(threshold));\nOTELTraces\n| where StartTime > ago(_window)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName in (AnomalySubscriptions | project anomality)\n| make-series SpanCount = count() default=0 on StartTime from bin(ago(_window), _bin) to bin(now(), _bin) - _bin * 3 step _bin by ServiceName\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, _threshold, -1, 'linefit')\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), anomalies to typeof(int), score to typeof(real), baseline to typeof(real)\n| where SpanCount > 0 and anomalies != 0 and StartTime > ago(25m)\n| join kind=inner AnomalySubscriptions on $left.ServiceName == $right.anomality\n| summarize arg_max(abs(score), anomalies, SpanCount, baseline, StartTime, threshold, bin_size, time_window) by ServiceName, mail\n| extend Direction = iff(anomalies > 0, \"spike\", \"drop\")\n| project Timestamp = now(), ServiceName, mail, Direction, Threshold = tostring(threshold), BinSize = tostring(bin_size), TimeWindow = tostring(time_window), Value = todouble(SpanCount)",
+                "querySource": "raw",
+                "queryType": "KQL",
+                "rawMode": true,
+                "refId": "D",
+                "resultFormat": "time_series"
+            }
+        },
+        {
+            "refId": "E",
+            "queryType": "",
+            "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+            },
+            "datasourceUid": "-100",
+            "model": {
+                "datasource": {
+                    "type": "__expr__",
+                    "uid": "-100"
+                },
+                "expression": "D",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "E",
+                "settings": {
+                    "mode": "dropNN"
+                },
+                "type": "reduce"
+            }
+        },
+        {
+            "refId": "F",
+            "queryType": "KQL",
+            "relativeTimeRange": {
+                "from": 10800,
+                "to": 0
+            },
+            "datasourceUid": "OBS360DataSource",
+            "model": {
+                "database": "openteldb",
+                "datasource": {
+                    "type": "grafana-azure-data-explorer-datasource",
+                    "uid": "OBS360DataSource"
+                },
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "query": "let _config = AnomalySubscriptions | summarize bin_size=max(totime(bin_size)), time_window=max(totime(time_window));\nlet _bin = toscalar(_config | project bin_size);\nlet _window = toscalar(_config | project time_window);\nlet _threshold = toscalar(AnomalySubscriptions | summarize max(threshold));\nOTELTraces\n| where StartTime > ago(_window)\n| extend ServiceName = tostring(parse_json(ResourceAttributes)[\"service.name\"])\n| where ServiceName in (AnomalySubscriptions | project anomality)\n| make-series SpanCount = count() default=0 on StartTime from bin(ago(_window), _bin) to bin(now(), _bin) - _bin * 3 step _bin by ServiceName\n| extend (anomalies, score, baseline) = series_decompose_anomalies(SpanCount, _threshold, -1, 'linefit')\n| mv-expand StartTime to typeof(datetime), SpanCount to typeof(long), anomalies to typeof(int), score to typeof(real), baseline to typeof(real)\n| where SpanCount > 0 and anomalies != 0 and StartTime > ago(25m)\n| join kind=inner AnomalySubscriptions on $left.ServiceName == $right.anomality\n| summarize arg_max(abs(score), anomalies, SpanCount, baseline, StartTime, threshold, bin_size, time_window) by ServiceName, mail\n| extend Direction = iff(anomalies > 0, \"spike\", \"drop\")\n| project Timestamp = now(), ServiceName, mail, Direction, Threshold = tostring(threshold), BinSize = tostring(bin_size), TimeWindow = tostring(time_window), Value = round(todouble(baseline), 0)",
+                "querySource": "raw",
+                "queryType": "KQL",
+                "rawMode": true,
+                "refId": "F",
+                "resultFormat": "time_series"
+            }
+        },
+        {
+            "refId": "G",
+            "queryType": "",
+            "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+            },
+            "datasourceUid": "-100",
+            "model": {
+                "datasource": {
+                    "type": "__expr__",
+                    "uid": "-100"
+                },
+                "expression": "F",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "G",
+                "settings": {
+                    "mode": "dropNN"
+                },
+                "type": "reduce"
+            }
+        }
+    ],
+    "updated": "2026-04-11T11:49:30Z",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "0s",
+    "annotations": {
+        "description": "Actual span count: {{ $values.E }} | Expected baseline: {{ $values.G }} | Deviation: {{ $values.B }}\u03c3 (threshold: {{ $labels.Threshold }}\u03c3) | Bin: {{ $labels.BinSize }} | Window: {{ $labels.TimeWindow }}",
+        "runbook_url": "http://74.241.162.127/d/cfgakjsu9416ob/anomalies?orgId=1&from=now-3h&to=now&var-service={{ $labels.ServiceName }}",
+        "summary": "Anomaly {{ $labels.Direction }} detected in {{ $labels.ServiceName }}"
+    },
+    "provenance": "api",
+    "isPaused": false,
+    "notification_settings": null,
+    "record": null
+}

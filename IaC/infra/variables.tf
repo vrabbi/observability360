@@ -53,3 +53,16 @@ variable "adx_sku" {
 variable "github_token" {
   description = "Github PAT for ACR Build tasks to pull the source code of this repo"
 }
+
+variable "anomaly_subscriptions" {
+  description = "Rows to ingest into the AnomalySubscriptions ADX table. anomality is the service.name to watch; mail is the alert recipient."
+  type = list(object({
+    anomality   = string
+    user        = string
+    mail        = string
+    threshold   = optional(number, 0.2)
+    bin_size    = optional(string, "5m")
+    time_window = optional(string, "3h")
+  }))
+  default = []
+}

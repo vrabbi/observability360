@@ -16,12 +16,19 @@ resource "azurerm_kusto_database" "otel" {
   cluster_name        = azurerm_kusto_cluster.demo.name
 }
 
+locals {
+  anomaly_subscription_rows = join("\n", [
+    for s in var.anomaly_subscriptions :
+    "${s.anomality},${s.user},${s.mail},${s.threshold},${s.bin_size},${s.time_window}"
+  ])
+}
+
 resource "azurerm_kusto_script" "baseconfig" {
   name                               = "baseconfig"
   database_id                        = azurerm_kusto_database.otel.id
   continue_on_errors_enabled         = true
-  force_an_update_when_value_changed = "first"
-  script_content = <<EOT
+  force_an_update_when_value_changed = sha256(jsonencode(var.anomaly_subscriptions))
+  script_content                     = <<EOT
 .create-merge table OTELLogs (Timestamp:datetime, ObservedTimestamp:datetime, TraceID:string, SpanID:string, SeverityText:string, SeverityNumber:int, Body:string, ResourceAttributes:dynamic, LogsAttributes:dynamic) 
 
 .create-merge table OTELMetrics (Timestamp:datetime, MetricName:string, MetricType:string, MetricUnit:string, MetricDescription:string, MetricValue:real, Host:string, ResourceAttributes:dynamic, MetricAttributes:dynamic) 
@@ -104,6 +111,22 @@ resource "azurerm_kusto_script" "baseconfig" {
 }
 
 .alter table ActivityLogs policy update @'[{"Source": "ActivityLogsRawRecords", "Query": "ActivityLogRecordsExpand()", "IsEnabled": "True", "IsTransactional": true}]'
+
+.create-merge table AnomalySubscriptions (
+    anomality:   string,    // service name (matches service.name in OTELTraces ResourceAttributes)
+    user:        string,    // display name of the subscriber
+    mail:        string,    // alert recipient email
+    threshold:   decimal,   // anomaly score threshold for series_decompose_anomalies()
+    bin_size:    timespan,  // time series bin size (e.g. 5m)
+    time_window: timespan   // lookback window for the model (e.g. 3h)
+)
+
+.clear table AnomalySubscriptions data
+%{if length(var.anomaly_subscriptions) > 0~}
+.ingest inline into table AnomalySubscriptions <|
+${local.anomaly_subscription_rows}
+%{endif~}
+
 EOT
 }
 
